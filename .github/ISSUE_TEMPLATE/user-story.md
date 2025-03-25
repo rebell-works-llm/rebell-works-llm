@@ -10,10 +10,10 @@ assignees: ''
 # User Story
 
 ## Description
-When ..., I want ..., so that ...
+As a [persona], I [want to], [so that].
 
 ## Acceptance Criteria
-- [ ] 
+- [ ]
 
 ## Tasks
 - [ ]
