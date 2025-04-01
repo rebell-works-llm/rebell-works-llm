@@ -12,7 +12,4 @@ assignees: ''
 ## Description
 
 ## Acceptance Criteria
-- [ ] 
-
-## Tasks
 - [ ]
