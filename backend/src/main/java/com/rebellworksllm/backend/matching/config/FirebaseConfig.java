@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.firebase_test.config;
+package com.rebellworksllm.backend.matching.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.Firestore;
