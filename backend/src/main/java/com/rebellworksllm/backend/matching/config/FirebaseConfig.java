@@ -21,7 +21,7 @@ public class FirebaseConfig {
                     .getResourceAsStream("rebell-works-llm-firebase-adminsdk-fbsvc-575eea3fcf.json");
 
             if (serviceAccount == null) {
-                throw new IOException("Service account file not found in classpath");
+                throw new IOException("Firebase service account file not found resources");
             }
 
             GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount);
