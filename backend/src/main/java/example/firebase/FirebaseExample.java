@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutionException;
 public class FirebaseExample {
 
     private static void initFirebase() throws IOException {
-        InputStream serviceAccount = new FileInputStream("backend/src/main/resources/rebell-works-llm-firebase-adminsdk-fbsvc-575eea3fcf.json");
+        InputStream serviceAccount = new FileInputStream("backend/src/main/resources/rebell-works-llm-firebase-adminsdk-fbsvc-96612a5d92.json");
         GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount);
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(credentials)
