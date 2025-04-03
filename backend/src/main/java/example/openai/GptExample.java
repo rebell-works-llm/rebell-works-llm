@@ -1,4 +1,4 @@
-package example;
+package example.openai;
 
 import org.json.JSONObject;
 
@@ -10,7 +10,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 // Example of how to use the openai API.
-public class GptTest {
+public class GptExample {
 
     public static void main(String[] args) throws IOException, URISyntaxException {
         String apiKey = System.getenv("OPENAI_API_KEY");
