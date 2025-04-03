@@ -18,7 +18,7 @@ public class FirebaseConfig {
     public Firestore firestore() {
         try {
             InputStream serviceAccount = getClass().getClassLoader()
-                    .getResourceAsStream("rebell-works-llm-firebase-adminsdk-fbsvc-575eea3fcf.json");
+                    .getResourceAsStream("rebell-works-llm-firebase-adminsdk-fbsvc-96612a5d92.json");
 
             if (serviceAccount == null) {
                 throw new IOException("Firebase service account file not found resources");
