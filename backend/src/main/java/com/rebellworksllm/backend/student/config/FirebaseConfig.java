@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.matching.config;
+package com.rebellworksllm.backend.student.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.Firestore;
