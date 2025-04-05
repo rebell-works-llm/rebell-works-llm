@@ -1,6 +1,6 @@
 package com.rebellworksllm.backend.matching.presentation;
 
-import com.rebellworksllm.backend.matching.application.QueryService;
+import com.rebellworksllm.backend.matching.domain.QueryService;
 import com.rebellworksllm.backend.matching.application.dto.QueryResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
