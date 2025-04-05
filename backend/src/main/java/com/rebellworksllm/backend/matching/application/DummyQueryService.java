@@ -1,5 +1,6 @@
 package com.rebellworksllm.backend.matching.application;
 
+import com.rebellworksllm.backend.matching.domain.QueryService;
 import com.rebellworksllm.backend.matching.application.dto.QueryResponseDto;
 import com.rebellworksllm.backend.matching.presentation.QueryRequestsDto;
 import com.rebellworksllm.backend.student.application.StudentDto;
