@@ -6,6 +6,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -17,30 +18,50 @@ import java.net.http.HttpResponse;
 @Service
 public class OpenAITextEmbedder implements TextEmbedder {
 
-    @SuppressWarnings("unchecked")
+    private static final String OPENAI_API_URL = "https://api.openai.com/v1/embeddings";
+    private static final String OPENAI_API_MODEL = "text-embedding-ada-002";
+
+    private final HttpClient httpClient;
+    private final String apiKey;
+
+    public OpenAITextEmbedder(HttpClient httpClient, @Value("${openai.api.key}") String apiKey) {
+        this.httpClient = httpClient;
+        this.apiKey = apiKey;
+    }
+
     @Override
     public float[] embedText(String text) throws TextEmbeddingException {
-        String apiKey = System.getenv("OPENAI_API_KEY");
-        String url = "https://api.openai.com/v1/embeddings";
+        try {
+            HttpResponse<String> response = httpClient.send(buildRequest(text), HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new TextEmbeddingException("OpenAI API returned status " + response.statusCode() + ": " + response.body());
+            }
 
+            return parseEmbedding(response.body());
+        } catch (IOException | InterruptedException e) {
+            throw new TextEmbeddingException("Failed to send request to OpenAI: " + e.getMessage());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private HttpRequest buildRequest(String text) {
         JSONObject requestBody = new JSONObject();
-        requestBody.put("model", "text-embedding-ada-002");
+        requestBody.put("model", OPENAI_API_MODEL);
         requestBody.put("input", text);
         requestBody.put("encoding_format", "float");
 
-        try(HttpClient client = HttpClient.newHttpClient()) {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + apiKey)
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBody.toJSONString()))
-                    .build();
+        return HttpRequest.newBuilder()
+                .uri(URI.create(OPENAI_API_URL))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + apiKey)
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody.toJSONString()))
+                .build();
+    }
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            // Parse response using Simple JSON
+    private float[] parseEmbedding(String responseBody) {
+        try {
             JSONParser parser = new JSONParser();
-            JSONObject jsonResponse = (JSONObject) parser.parse(response.body());
+            JSONObject jsonResponse = (JSONObject) parser.parse(responseBody);
             JSONArray dataArray = (JSONArray) jsonResponse.get("data");
             JSONObject firstData = (JSONObject) dataArray.getFirst();
             JSONArray embeddingArray = (JSONArray) firstData.get("embedding");
@@ -51,8 +72,8 @@ public class OpenAITextEmbedder implements TextEmbedder {
             }
 
             return embeddings;
-        } catch (IOException | InterruptedException | ParseException e) {
-            throw new TextEmbeddingException("Failed to embed text: " + e.getMessage());
+        } catch (ParseException e) {
+            throw new TextEmbeddingException("Failed to parse embedding: " + e.getMessage());
         }
     }
 }
