@@ -12,11 +12,12 @@ public class DummyVacanyServiceTest {
     @Test
     void testGetVacancies() {
         DummyVacancyService service = new DummyVacancyService();
-        List<Vacancy> vacancies = service.getVacancies();
+
+        List<Vacancy> vacancies = service.getAllVacancies();
         Vacancy vacancy = vacancies.getFirst();
 
         assertEquals(5, vacancies.size());
-        assertEquals("Creative Marketing Intern", vacancy.getTitle());
-        assertEquals(1536, vacancy.getVectors().length);
+        assertEquals("Creative Marketing Intern", vacancy.title());
+        assertEquals(1536, vacancy.vector().size());
     }
 }

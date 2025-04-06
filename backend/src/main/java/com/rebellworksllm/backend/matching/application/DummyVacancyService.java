@@ -20,15 +20,15 @@ public class DummyVacancyService implements VacancyService {
     private static final String JSON_FILE_PATH = "vector-vacancies.json";
 
     @Override
-    public List<Vacancy> getVacancies() {
+    public List<Vacancy> getAllVacancies() {
         List<Vacancy> vacancies = new ArrayList<>();
         for (Object object : readJsonFile()) {
             JSONObject vacancy = (JSONObject) object;
-
             JSONArray embeddingArray = (JSONArray) vacancy.get("embedding");
-            float[] vector = new float[embeddingArray.size()];
-            for (int i = 0; i < embeddingArray.size(); i++) {
-                vector[i] = ((Number) embeddingArray.get(i)).floatValue();
+            List<Double> vector = new ArrayList<>();
+
+            for (Object o : embeddingArray) {
+                vector.add(Double.parseDouble(o.toString()));
             }
 
             vacancies.add(new Vacancy(vacancy.get("title").toString(), vector));
@@ -38,6 +38,7 @@ public class DummyVacancyService implements VacancyService {
     }
 
     private JSONArray readJsonFile() {
+        System.out.println("Looking for file at: " + new java.io.File(JSON_FILE_PATH).getAbsolutePath());
         try {
             Object obj = new JSONParser().parse(new FileReader(JSON_FILE_PATH));
             JSONObject jsonObject = (JSONObject) obj;
