@@ -26,9 +26,9 @@ public class DummyVacancyService implements VacancyService {
             JSONObject vacancy = (JSONObject) object;
 
             JSONArray embeddingArray = (JSONArray) vacancy.get("embedding");
-            float[] vector = new float[embeddingArray.size()];
+            List<Double> vector = new ArrayList<>();
             for (int i = 0; i < embeddingArray.size(); i++) {
-                vector[i] = ((Number) embeddingArray.get(i)).floatValue();
+                vector.set(i, Double.parseDouble(embeddingArray.get(i).toString()));
             }
 
             vacancies.add(new Vacancy(vacancy.get("title").toString(), vector));
