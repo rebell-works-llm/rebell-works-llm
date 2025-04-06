@@ -1,4 +1,3 @@
-.idea
+/.idea
 /backend/src/main/resources/rebell-works-llm-firebase-adminsdk-fbsvc-96612a5d92.json
 /.env
-/backend/vector-vacancies.json
