@@ -14,6 +14,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class OpenAITextEmbedder implements TextEmbedder {
@@ -30,7 +32,7 @@ public class OpenAITextEmbedder implements TextEmbedder {
     }
 
     @Override
-    public float[] embedText(String text) throws TextEmbeddingException {
+    public List<Double> embedText(String text) throws TextEmbeddingException {
         try {
             HttpResponse<String> response = httpClient.send(buildRequest(text), HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
@@ -58,7 +60,7 @@ public class OpenAITextEmbedder implements TextEmbedder {
                 .build();
     }
 
-    private float[] parseEmbedding(String responseBody) {
+    private List<Double> parseEmbedding(String responseBody) {
         try {
             JSONParser parser = new JSONParser();
             JSONObject jsonResponse = (JSONObject) parser.parse(responseBody);
@@ -66,9 +68,9 @@ public class OpenAITextEmbedder implements TextEmbedder {
             JSONObject firstData = (JSONObject) dataArray.getFirst();
             JSONArray embeddingArray = (JSONArray) firstData.get("embedding");
 
-            float[] embeddings = new float[embeddingArray.size()];
-            for (int i = 0; i < embeddingArray.size(); i++) {
-                embeddings[i] = Float.parseFloat(embeddingArray.get(i).toString());
+            List<Double> embeddings = new ArrayList<>();
+            for (Object o : embeddingArray) {
+                embeddings.add(Double.parseDouble(o.toString()));
             }
 
             return embeddings;

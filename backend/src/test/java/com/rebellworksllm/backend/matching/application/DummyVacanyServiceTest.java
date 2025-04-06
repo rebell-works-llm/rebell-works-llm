@@ -12,7 +12,8 @@ public class DummyVacanyServiceTest {
     @Test
     void testGetVacancies() {
         DummyVacancyService service = new DummyVacancyService();
-        List<Vacancy> vacancies = service.getVacancies();
+
+        List<Vacancy> vacancies = service.getAllVacancies();
         Vacancy vacancy = vacancies.getFirst();
 
         assertEquals(5, vacancies.size());

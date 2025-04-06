@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface VacancyService {
 
-    List<Vacancy> getVacancies();
+    List<Vacancy> getAllVacancies();
 }

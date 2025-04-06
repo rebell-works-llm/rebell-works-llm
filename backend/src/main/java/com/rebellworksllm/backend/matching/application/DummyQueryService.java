@@ -1,38 +1,44 @@
 package com.rebellworksllm.backend.matching.application;
 
-import com.rebellworksllm.backend.matching.domain.QueryService;
+import com.rebellworksllm.backend.embedding.domain.TextEmbedder;
+import com.rebellworksllm.backend.matching.domain.*;
 import com.rebellworksllm.backend.matching.application.dto.QueryResponseDto;
 import com.rebellworksllm.backend.matching.presentation.QueryRequestsDto;
-import com.rebellworksllm.backend.student.application.StudentDto;
-import com.rebellworksllm.backend.student.application.StudentService;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class DummyQueryService implements QueryService {
 
-    private final StudentService studentService;
+    private final VacancyService vacancyService;
+    private final TextEmbedder textEmbedder;
+    private final StudentJobMatchingService studentJobMatchingService;
 
-    public DummyQueryService(StudentService studentService) {
-        this.studentService = studentService;
+    public DummyQueryService(VacancyService vacancyService,
+                             TextEmbedder textEmbedder,
+                             StudentJobMatchingService studentJobMatchingService) {
+        this.vacancyService = vacancyService;
+        this.textEmbedder = textEmbedder;
+        this.studentJobMatchingService = studentJobMatchingService;
     }
 
     @Override
     public QueryResponseDto processQuery(QueryRequestsDto request) {
-        String studentPhoneNumber = request.phoneNumber();
-        String studentMessageText = request.messageText();
-
-        System.out.println("Simulated WhatsApp Message from " + studentPhoneNumber + ": " + studentMessageText);
-
-        // Fetch the student or throw if not found
-        StudentDto studentDto = studentService.findByPhoneNumber(studentPhoneNumber);
-
-        // TODO: Fetch Vacancy Data as Vector(s)
-        // TODO: Match Student With Vacancies (GPT)
+        Student student = new Student(request.messageText(), textEmbedder.embedText(request.messageText()));
+        List<Vacancy> vacancies = vacancyService.getAllVacancies();
+        List<StudentVacancyMatch> matches = studentJobMatchingService.findBestMatches(
+                student,
+                vacancies,
+                5
+        );
 
         // TODO: Construct a fancy response message to send the best matches to the student
-        String mathResult = "Great to hear " + studentDto.name() + "!. I found a match for you: Junior Software Developer at the Hogeschool Utrecht, starting april 3.\n\nDoes this sound good to you?";
-
         // TODO: Return error if no matches found
-        return QueryResponseDto.fromVacancy(mathResult);
+        return QueryResponseDto.fromVacancy(
+                matches.stream()
+                        .map(match -> String.valueOf(match.vacancy().title()))
+                        .toList()
+        );
     }
 }
