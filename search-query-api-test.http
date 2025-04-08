@@ -1,18 +1,8 @@
-### Test Dummy Search Query (Success)
+### Test Dummy Search Query
 POST http://localhost:8080/api/v1/matcher
 Content-Type: application/json
 
 {
   "phoneNumber": "0600000001",
-  "messageText": "Looking for internship as software dev student!"
-}
-
-
-### Test Dummy Search Query (No Student Found)
-POST http://localhost:8080/api/v1/matcher
-Content-Type: application/json
-
-{
-  "phoneNumber": "0600000000",
-  "messageText": "Looking for internship as software dev student!"
+  "messageText": "Looking for internship as hbo student! I like to talk with people."
 }

@@ -1,10 +1,12 @@
 package com.rebellworksllm.backend.matching.application.dto;
 
+import java.util.List;
+
 public record QueryResponseDto(
-        String queryResponse
+        List<String> foundMatches
 ) {
 
-    public static QueryResponseDto fromVacancy(String vacancy) {
-        return new QueryResponseDto(vacancy);
+    public static QueryResponseDto fromVacancy(List<String> foundMatches) {
+        return new QueryResponseDto(foundMatches);
     }
 }
