@@ -13,6 +13,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class DummyVacancyService implements VacancyService {
@@ -38,15 +39,15 @@ public class DummyVacancyService implements VacancyService {
     }
 
     private JSONArray readJsonFile() {
-        System.out.println("Looking for file at: " + new java.io.File(JSON_FILE_PATH).getAbsolutePath());
-        try {
-            Object obj = new JSONParser().parse(new FileReader(JSON_FILE_PATH));
+        ClassLoader classLoader = getClass().getClassLoader();
+        try (FileReader reader = new FileReader(Objects.requireNonNull(classLoader.getResource(JSON_FILE_PATH)).getFile())) {
+            Object obj = new JSONParser().parse(reader);
             JSONObject jsonObject = (JSONObject) obj;
 
             return (JSONArray) jsonObject.get("dummy-vacancies");
-        } catch (IOException | ParseException e) {
-            throw new CannotFetchVacancyEmbeddingsException("Cannot fetch vacancy embeddings from file'"
-                    + DummyVacancyService.JSON_FILE_PATH + "': " + e.getMessage());
+        } catch (IOException | ParseException | NullPointerException e) {
+            throw new CannotFetchVacancyEmbeddingsException("Cannot fetch vacancy embeddings from file '"
+                    + JSON_FILE_PATH + "': " + e.getMessage());
         }
     }
 }
