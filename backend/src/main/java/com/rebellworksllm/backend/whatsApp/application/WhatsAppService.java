@@ -1,12 +1,22 @@
 package com.rebellworksllm.backend.whatsApp.application;
 
+import jakarta.annotation.PostConstruct;
+import org.springframework.stereotype.Service;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-
+@Service
 public class WhatsAppService {
+
+
+    @PostConstruct
+    public void sendFirstMessageAtStartup() throws IOException, InterruptedException {
+        String telefoonNummer = "31657771880";
+        sendFirstMessage(telefoonNummer);
+    }
 
     public void sendFirstMessage(String telefoonNummer) throws IOException, InterruptedException{
         String token = EnvLoader.getWhatsAppToken();
@@ -22,21 +32,10 @@ public class WhatsAppService {
         "name": "hello_world",
         "language": {
           "code": "en_US"
-        },
-        "components": [
-          {
-            "type": "body",
-            "parameters": [
-              {
-                "type": "text",
-                "text": "%s"
-              }
-            ]
-          }
-        ]
+        }
       }
     }
-    """.formatted("31657771880", "hoi");
+    """.formatted(telefoonNummer);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
