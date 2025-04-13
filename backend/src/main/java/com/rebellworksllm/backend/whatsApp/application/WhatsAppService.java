@@ -1,5 +1,7 @@
 package com.rebellworksllm.backend.whatsApp.application;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rebellworksllm.backend.matching.application.dto.QueryResponseDto;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
@@ -12,15 +14,23 @@ import java.net.http.HttpResponse;
 public class WhatsAppService {
 
 
-    @PostConstruct
-    public void sendFirstMessageAtStartup() throws IOException, InterruptedException {
-        String telefoonNummer = "31657771880";
-        sendFirstMessage(telefoonNummer);
-    }
+
 
     public void sendFirstMessage(String telefoonNummer) throws IOException, InterruptedException{
         String token = EnvLoader.getWhatsAppToken();
         String numberID = EnvLoader.getPhoneNumberId();
+
+        String responseJson = fetchQueryResponseJson();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        QueryResponseDto responseDto = objectMapper.readValue(responseJson, QueryResponseDto.class);
+
+        String websiteLink = "-";
+        if (responseDto.bestMatch() != null && responseDto.bestMatch().getWebsite() != null) {
+            websiteLink = responseDto.bestMatch().getWebsite();
+        }
+
+
 
         String url = "https://graph.facebook.com/v17.0/" + numberID + "/messages";
         String jsonBody = """
@@ -29,13 +39,26 @@ public class WhatsAppService {
       "to": "%s",
       "type": "template",
       "template": {
-        "name": "hello_world",
+        "name": "vacancies",
         "language": {
-          "code": "en_US"
-        }
+          "code": "en"
+        },
+        "components": [
+              {
+                "type": "body",
+                "parameters": [
+                  { "type": "text", "text": "Kevin" },
+                  { "type": "text", "text": "%s" },
+                  { "type": "text", "text": "-" },
+                  { "type": "text", "text": "-" },
+                  { "type": "text", "text": "-" },
+                  { "type": "text", "text": "-" }
+                ]
+              }
+            ]\s
       }
     }
-    """.formatted(telefoonNummer);
+    """.formatted(telefoonNummer, websiteLink);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
@@ -48,7 +71,30 @@ public class WhatsAppService {
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
         System.out.println("Response: " + response.body());
-
-
     }
+
+
+    public String fetchQueryResponseJson() throws IOException, InterruptedException {
+        String url = "http://localhost:8080/api/v1/matcher";
+
+        String requestBody = """
+    {
+      "phoneNumber": "0600000000",
+      "messageText": "Looking for internship as hbo student! I study graphic design."
+    }
+    """;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        return response.body();
+    }
+
+
 }
