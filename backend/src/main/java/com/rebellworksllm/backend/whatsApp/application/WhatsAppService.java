@@ -2,6 +2,7 @@ package com.rebellworksllm.backend.whatsApp.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rebellworksllm.backend.matching.application.dto.QueryResponseDto;
+import com.rebellworksllm.backend.matching.domain.Match;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
@@ -25,10 +26,23 @@ public class WhatsAppService {
         ObjectMapper objectMapper = new ObjectMapper();
         QueryResponseDto responseDto = objectMapper.readValue(responseJson, QueryResponseDto.class);
 
-        String websiteLink = "-";
+        String websiteLink1 = "-";
         if (responseDto.bestMatch() != null && responseDto.bestMatch().getWebsite() != null) {
-            websiteLink = responseDto.bestMatch().getWebsite();
+            websiteLink1 = responseDto.bestMatch().getWebsite();
         }
+
+        String websiteLink2 = responseDto.otherMatches().getFirst().getWebsite();
+
+        String websiteLink3 = responseDto.otherMatches().get(1).getWebsite();
+
+        String websiteLink4 = responseDto.otherMatches().get(2).getWebsite();
+
+        String websiteLink5 = responseDto.otherMatches().get(3).getWebsite();
+
+
+
+
+
 
 
 
@@ -49,16 +63,17 @@ public class WhatsAppService {
                 "parameters": [
                   { "type": "text", "text": "Kevin" },
                   { "type": "text", "text": "%s" },
-                  { "type": "text", "text": "-" },
-                  { "type": "text", "text": "-" },
-                  { "type": "text", "text": "-" },
-                  { "type": "text", "text": "-" }
+                  { "type": "text", "text": "%s" },
+                  { "type": "text", "text": "%s" },
+                  { "type": "text", "text": "%s" },
+                  { "type": "text", "text": "%s" }
+                 
                 ]
               }
             ]\s
       }
     }
-    """.formatted(telefoonNummer, websiteLink);
+    """.formatted(telefoonNummer, websiteLink1, websiteLink2, websiteLink3, websiteLink4, websiteLink5);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
