@@ -2,7 +2,8 @@ package com.rebellworksllm.backend.matching.presentation;
 
 public record QueryRequestsDto(
 
-        String phoneNumber,
-        String messageText
+        String name,
+        String messageText,
+        String phoneNumber
 ) {
 }
