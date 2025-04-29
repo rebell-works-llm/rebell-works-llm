@@ -6,6 +6,7 @@ import com.rebellworksllm.backend.embedding.domain.TextEmbedder;
 import com.rebellworksllm.backend.matching.domain.*;
 import com.rebellworksllm.backend.matching.application.dto.QueryResponseDto;
 import com.rebellworksllm.backend.matching.presentation.QueryRequestsDto;
+import com.rebellworksllm.backend.whatsapp.application.WhatsAppService;
 import org.springframework.stereotype.Service;
 import org.springframework.core.io.ClassPathResource;
 
@@ -20,10 +21,13 @@ public class DummyQueryService implements QueryService {
     private final VacancyService vacancyService;
     private final TextEmbedder textEmbedder;
     private final StudentJobMatchingService studentJobMatchingService;
+    private final WhatsAppService whatsAppService;
 
     public DummyQueryService(VacancyService vacancyService,
                              TextEmbedder textEmbedder,
-                             StudentJobMatchingService studentJobMatchingService) {
+                             StudentJobMatchingService studentJobMatchingService,
+                             WhatsAppService whatsAppService) {
+        this.whatsAppService = whatsAppService;
         this.vacancyService = vacancyService;
         this.textEmbedder = textEmbedder;
         this.studentJobMatchingService = studentJobMatchingService;
@@ -44,9 +48,21 @@ public class DummyQueryService implements QueryService {
             otherMatches.add(getMatchByTitle(matches.get(i).vacancy().title()));
         }
 
+        QueryResponseDto queryResponseDto = QueryResponseDto.fromVacancy(bestMatch, otherMatches);
+
         // TODO: Construct a fancy response message to send the best matches to the student
+        String response = whatsAppService.sendWithVacancyTemplate(
+                request.phoneNumber(),
+                request.name(),
+                bestMatch.getWebsite(),
+                otherMatches.get(0).getWebsite(),
+                otherMatches.get(1).getWebsite(),
+                otherMatches.get(2).getWebsite(),
+                otherMatches.get(3).getWebsite()
+        );
+
         // TODO: Return error if no matches found
-        return QueryResponseDto.fromVacancy(bestMatch, otherMatches);
+        return queryResponseDto;
     }
 
     public Match getMatchByTitle(String title) {
