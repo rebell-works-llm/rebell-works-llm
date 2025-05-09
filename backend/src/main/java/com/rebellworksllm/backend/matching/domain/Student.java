@@ -1,6 +1,16 @@
 package com.rebellworksllm.backend.matching.domain;
 
-import java.util.List;
+import com.rebellworksllm.backend.embedding.domain.Vectors;
 
-public record Student(String query, List<Double> vector) {
+public record Student(
+
+        String name,
+        String email,
+        String phoneNumber,
+        String study,
+        String lookingForText,
+        String studyLocation,
+        Vectors vectors
+) {
+
 }

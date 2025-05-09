@@ -2,6 +2,7 @@ package com.rebellworksllm.backend.embedding.application;
 
 import com.rebellworksllm.backend.embedding.application.exception.TextEmbeddingException;
 import com.rebellworksllm.backend.embedding.domain.TextEmbedder;
+import com.rebellworksllm.backend.embedding.domain.Vectors;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -32,14 +33,14 @@ public class OpenAITextEmbedder implements TextEmbedder {
     }
 
     @Override
-    public List<Double> embedText(String text) throws TextEmbeddingException {
+    public Vectors embedText(String text) throws TextEmbeddingException {
         try {
             HttpResponse<String> response = httpClient.send(buildRequest(text), HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new TextEmbeddingException("OpenAI API returned status " + response.statusCode() + ": " + response.body());
             }
 
-            return parseEmbedding(response.body());
+            return new Vectors(parseEmbedding(response.body()));
         } catch (IOException | InterruptedException e) {
             throw new TextEmbeddingException("Failed to send request to OpenAI: " + e.getMessage());
         }

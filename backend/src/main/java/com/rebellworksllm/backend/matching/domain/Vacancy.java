@@ -1,6 +1,12 @@
 package com.rebellworksllm.backend.matching.domain;
 
-import java.util.List;
+import com.rebellworksllm.backend.embedding.domain.Vectors;
 
-public record Vacancy(String title, List<Double> vector) {
+
+public record Vacancy(
+
+        String title,
+        String website,
+        Vectors vectors
+) {
 }

@@ -1,8 +1,8 @@
 package com.rebellworksllm.backend.matching.application;
 
+import com.rebellworksllm.backend.embedding.domain.Vectors;
 import com.rebellworksllm.backend.matching.application.exception.CannotFetchVacancyEmbeddingsException;
 import com.rebellworksllm.backend.matching.domain.Vacancy;
-import com.rebellworksllm.backend.matching.domain.VacancyService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -24,15 +24,20 @@ public class DummyVacancyService implements VacancyService {
     public List<Vacancy> getAllVacancies() {
         List<Vacancy> vacancies = new ArrayList<>();
         for (Object object : readJsonFile()) {
-            JSONObject vacancy = (JSONObject) object;
-            JSONArray embeddingArray = (JSONArray) vacancy.get("embedding");
+            JSONObject vacancyObject = (JSONObject) object;
+            JSONArray embeddingArray = (JSONArray) vacancyObject.get("embedding");
             List<Double> vector = new ArrayList<>();
 
             for (Object o : embeddingArray) {
                 vector.add(Double.parseDouble(o.toString()));
             }
 
-            vacancies.add(new Vacancy(vacancy.get("title").toString(), vector));
+            Vacancy vacancy = new Vacancy(
+                    vacancyObject.get("title").toString(),
+                    vacancyObject.get("website").toString(),
+                    new Vectors(vector)
+            );
+            vacancies.add(vacancy);
         }
 
         return vacancies;
@@ -46,8 +51,7 @@ public class DummyVacancyService implements VacancyService {
 
             return (JSONArray) jsonObject.get("dummy-vacancies");
         } catch (IOException | ParseException | NullPointerException e) {
-            throw new CannotFetchVacancyEmbeddingsException("Cannot fetch vacancy embeddings from file '"
-                    + JSON_FILE_PATH + "': " + e.getMessage());
+            throw new CannotFetchVacancyEmbeddingsException("Cannot fetch vacancy embeddings", e);
         }
     }
 }
