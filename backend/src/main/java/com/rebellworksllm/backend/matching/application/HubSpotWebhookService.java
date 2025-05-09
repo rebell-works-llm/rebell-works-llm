@@ -38,9 +38,9 @@ public class HubSpotWebhookService {
         this.whatsAppService = whatsAppService;
     }
 
-    public void matchStudent(HubSpotWebhookPayload payload) {
+    public void matchStudent(long id, int matchLimits) {
         // Setup student match object
-        StudentDto studentDto = studentService.getStudentById(payload.objectId());
+        StudentDto studentDto = studentService.getStudentById(id);
         Vectors studentVectors = textEmbedder.embedText(
                 studentDto.study() + " " + studentDto.studyLocation() + " " + studentDto.text()
         );
@@ -58,11 +58,11 @@ public class HubSpotWebhookService {
         List<Vacancy> vacancies = vacancyService.getAllVacancies();
 
         // Match student and vacancies
-        List<StudentVacancyMatch> matches = studentJobMatchingService.findBestMatches(student, vacancies, 5);
+        List<StudentVacancyMatch> matches = studentJobMatchingService.findBestMatches(student, vacancies, matchLimits);
 
         VacancyMatchDto bestMatch = getMatchByTitle(matches.getFirst().vacancy().title());
         List<VacancyMatchDto> otherMatches = new ArrayList<>();
-        for(int i = 1; i < 5; i++) {
+        for (int i = 1; i < 5; i++) {
             otherMatches.add(getMatchByTitle(matches.get(i).vacancy().title()));
         }
 
