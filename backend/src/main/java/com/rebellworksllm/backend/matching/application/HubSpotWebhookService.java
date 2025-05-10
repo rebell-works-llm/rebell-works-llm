@@ -33,7 +33,7 @@ public class HubSpotWebhookService {
     }
 
     public void startMatchEventForObject(long objectId) {
-        StudentDto studentDto = studentService.getStudentById(objectId);
+        StudentDto studentDto = studentService.getByContactId(objectId);
         Student student = toStudent(studentDto);
         List<Vacancy> vacancies = vacancyService.getAllVacancies();
         List<StudentVacancyMatch> matches = matchingService.findBestMatches(student, vacancies, FIRST_MATCH_LIMIT);

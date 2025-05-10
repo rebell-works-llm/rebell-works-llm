@@ -1,11 +1,14 @@
 package com.rebellworksllm.backend.matching.application;
 
 import com.rebellworksllm.backend.matching.application.dto.StudentDto;
+import com.rebellworksllm.backend.matching.config.HubSpotProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
@@ -13,20 +16,23 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 public class HubSpotContactProviderTest {
 
-    private HubSpotContactProvider studentService;
+    private HubSpotContactProvider contactProvider;
     private MockRestServiceServer mockServer;
-
 
     @BeforeEach
     void setUp() {
         RestTemplate restTemplate = new RestTemplate();
-
-        restTemplate.getInterceptors().add((request, body, execution) -> {
+        restTemplate.setInterceptors(List.of((request, body, execution) -> {
             request.getHeaders().add("Authorization", "Bearer test-token");
             return execution.execute(request, body);
-        });
+        }));
 
-        studentService = new HubSpotContactProvider(restTemplate);
+        HubSpotProperties properties = new HubSpotProperties();
+        properties.setApiKey("test-token");
+        properties.setBaseUrl("https://api.hubapi.com");
+        properties.setContactProperties("firstname,email,studie,phone,study,op_zoek_naar_,location,geboortedatum");
+
+        contactProvider = new HubSpotContactProvider(restTemplate, properties);
         mockServer = MockRestServiceServer.createServer(restTemplate);
     }
 
@@ -46,14 +52,15 @@ public class HubSpotContactProviderTest {
                   }
                 }""";
 
-        mockServer.expect(requestTo("https://api.hubapi.com/crm/v3/objects/contacts/1?properties=firstname,email,studie,phone,study,op_zoek_naar_,location,geboortedatum"))
+        String expectedUrl = "https://api.hubapi.com/crm/v3/objects/contacts/1?properties=firstname,email,studie,phone,study,op_zoek_naar_,location,geboortedatum";
+
+        mockServer.expect(requestTo(expectedUrl))
                 .andExpect(method(org.springframework.http.HttpMethod.GET))
                 .andExpect(header("Authorization", "Bearer test-token"))
                 .andRespond(withSuccess(jsonResponse, MediaType.APPLICATION_JSON));
 
-        StudentDto studentDto = studentService.getStudentById(1L);
+        StudentDto studentDto = contactProvider.getByContactId(1L);
 
-        // Assertions
         assertEquals("John Doe", studentDto.fullName());
         assertEquals("john.doe@example.com", studentDto.email());
         assertEquals("0123456789", studentDto.phoneNumber());

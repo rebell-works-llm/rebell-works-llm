@@ -1,6 +1,5 @@
 package com.rebellworksllm.backend.matching.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
@@ -11,22 +10,16 @@ import java.util.List;
 @Configuration
 public class HubSpotConfig {
 
-    private final String apiKey;
+    @Bean("hubspotRestTemplate")
+    public RestTemplate restTemplate(HubSpotProperties properties) {
+        RestTemplate template = new RestTemplate();
 
-    public HubSpotConfig(@Value("${hubspot.api.key}") String apiKey) {
-        this.apiKey = apiKey;
-    }
-
-    @Bean("HubSpotRestTemplate")
-    public RestTemplate restTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-
-        ClientHttpRequestInterceptor interceptor = (request, body, execution) -> {
-            request.getHeaders().add("Authorization", "Bearer " + apiKey);
+        ClientHttpRequestInterceptor authInterceptor = (request, body, execution) -> {
+            request.getHeaders().add("Authorization", "Bearer " + properties.getApiKey());
             return execution.execute(request, body);
         };
 
-        restTemplate.setInterceptors(List.of(interceptor));
-        return restTemplate;
+        template.setInterceptors(List.of(authInterceptor));
+        return template;
     }
 }

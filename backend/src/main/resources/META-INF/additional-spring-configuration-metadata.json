@@ -16,8 +16,18 @@
       "description": "Description for openai.api.key."
     },
     {
-      "name": "whatsapp.tester.phone_number",
+      "name": "whatsapp.tester.phoneNumber",
       "type": "java.lang.String",
       "description": "Description for whatsapp.tester.phonenumber."
+    },
+    {
+      "name": "hubspot.api.baseUrl",
+      "type": "java.lang.String",
+      "description": "Description for hubspot.api.base_url."
+    },
+    {
+      "name": "hubspot.api.contactProperties",
+      "type": "java.lang.String",
+      "description": "Description for hubspot.api.contactProperties."
     }
   ] }
