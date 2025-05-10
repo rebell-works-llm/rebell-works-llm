@@ -3,6 +3,7 @@ package com.rebellworksllm.backend.matching.application;
 import com.rebellworksllm.backend.embedding.domain.TextEmbedder;
 import com.rebellworksllm.backend.embedding.domain.Vectors;
 import com.rebellworksllm.backend.matching.application.dto.StudentDto;
+import com.rebellworksllm.backend.matching.config.HubSpotCredentials;
 import com.rebellworksllm.backend.matching.domain.*;
 import com.rebellworksllm.backend.whatsapp.application.WhatsAppService;
 import org.springframework.stereotype.Service;
@@ -14,17 +15,20 @@ public class HubSpotWebhookService {
 
     private static final int FIRST_MATCH_LIMIT = 5;
 
+    private final HubSpotCredentials hubSpotCredentials;
     private final ContactProvider studentService;
     private final VacancyService vacancyService;
     private final TextEmbedder embedder;
     private final StudentJobMatchingService matchingService;
     private final WhatsAppService whatsAppService;
 
-    public HubSpotWebhookService(ContactProvider studentService,
+    public HubSpotWebhookService(HubSpotCredentials hubSpotCredentials,
+                                 ContactProvider studentService,
                                  VacancyService vacancyService,
                                  TextEmbedder embedder,
                                  StudentJobMatchingService matchingService,
                                  WhatsAppService whatsAppService) {
+        this.hubSpotCredentials = hubSpotCredentials;
         this.studentService = studentService;
         this.vacancyService = vacancyService;
         this.embedder = embedder;
@@ -33,7 +37,10 @@ public class HubSpotWebhookService {
     }
 
     public void startMatchEventForObject(long objectId) {
-        StudentDto studentDto = studentService.getByContactId(objectId);
+        String[] properties = hubSpotCredentials.getContactProperties() != null
+                ? hubSpotCredentials.getContactProperties().split(",")
+                : new String[0];
+        StudentDto studentDto = studentService.getByContactId(objectId, properties);
         Student student = toStudent(studentDto);
         List<Vacancy> vacancies = vacancyService.getAllVacancies();
         List<StudentVacancyMatch> matches = matchingService.findBestMatches(student, vacancies, FIRST_MATCH_LIMIT);

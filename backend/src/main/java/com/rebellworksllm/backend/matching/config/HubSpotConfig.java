@@ -11,7 +11,7 @@ import java.util.List;
 public class HubSpotConfig {
 
     @Bean("hubspotRestTemplate")
-    public RestTemplate restTemplate(HubSpotProperties properties) {
+    public RestTemplate restTemplate(HubSpotCredentials properties) {
         RestTemplate template = new RestTemplate();
 
         ClientHttpRequestInterceptor authInterceptor = (request, body, execution) -> {

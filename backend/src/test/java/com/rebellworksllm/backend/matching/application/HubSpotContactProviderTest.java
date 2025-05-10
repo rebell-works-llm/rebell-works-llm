@@ -1,7 +1,7 @@
 package com.rebellworksllm.backend.matching.application;
 
 import com.rebellworksllm.backend.matching.application.dto.StudentDto;
-import com.rebellworksllm.backend.matching.config.HubSpotProperties;
+import com.rebellworksllm.backend.matching.config.HubSpotCredentials;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -27,7 +27,7 @@ public class HubSpotContactProviderTest {
             return execution.execute(request, body);
         }));
 
-        HubSpotProperties properties = new HubSpotProperties();
+        HubSpotCredentials properties = new HubSpotCredentials();
         properties.setApiKey("test-token");
         properties.setBaseUrl("https://api.hubapi.com");
         properties.setContactProperties("firstname,email,studie,phone,study,op_zoek_naar_,location,geboortedatum");

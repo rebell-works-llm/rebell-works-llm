@@ -1,5 +1,7 @@
 package com.rebellworksllm.backend.matching.presentation;
 
+import jakarta.validation.constraints.Positive;
+
 public record HubSpotWebhookPayload(
 
         long appId,
@@ -9,7 +11,10 @@ public record HubSpotWebhookPayload(
         long occurredAt, // Instant or LocalDateTime?
         String subscriptionType,
         int attemptNumber,
+
+        @Positive
         long objectId,
+
         String changeSource,
         String changeFlag
 ) {

@@ -6,7 +6,7 @@ import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties(prefix = "hubspot")
 @Validated
-public class HubSpotProperties {
+public class HubSpotCredentials {
 
     @NotBlank
     private String apiKey;

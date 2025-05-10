@@ -1,6 +1,7 @@
 package com.rebellworksllm.backend.matching.presentation;
 
 import com.rebellworksllm.backend.matching.application.HubSpotWebhookService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,13 +20,12 @@ public class HubSpotWebhookController {
     }
 
     @PostMapping("/created")
-    public ResponseEntity<HubSpotWebhookResponse> handleContactCreation(@RequestBody HubSpotWebhookPayload payload) {
+    public ResponseEntity<HubSpotWebhookResponse> handleContactCreation(@Valid @RequestBody HubSpotWebhookPayload payload) {
         webhookService.startMatchEventForObject(payload.objectId());
         HubSpotWebhookResponse response = new HubSpotWebhookResponse(
-                Integer.parseInt(HttpStatus.OK.toString()),
+                HttpStatus.OK.value(),
                 "Student matched successfully"
         );
-
         return ResponseEntity.ok(response);
     }
 }

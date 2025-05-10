@@ -3,7 +3,7 @@ package com.rebellworksllm.backend.matching.application;
 import com.rebellworksllm.backend.matching.application.dto.ContactRequest;
 import com.rebellworksllm.backend.matching.application.dto.StudentDto;
 import com.rebellworksllm.backend.matching.application.exception.ContactNotFoundException;
-import com.rebellworksllm.backend.matching.config.HubSpotProperties;
+import com.rebellworksllm.backend.matching.config.HubSpotCredentials;
 import com.rebellworksllm.backend.matching.domain.ContactProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
@@ -18,18 +18,18 @@ public class HubSpotContactProvider implements ContactProvider {
 
     @Qualifier("hubspotRestTemplate")
     private final RestTemplate restTemplate;
-    private final HubSpotProperties properties;
+    private final HubSpotCredentials credentials;
 
-    public HubSpotContactProvider(RestTemplate restTemplate, HubSpotProperties properties) {
+    public HubSpotContactProvider(RestTemplate restTemplate, HubSpotCredentials credentials) {
         this.restTemplate = restTemplate;
-        this.properties = properties;
+        this.credentials = credentials;
     }
 
     @Override
-    public StudentDto getByContactId(long id) {
-        String url = UriComponentsBuilder.fromUriString(properties.getBaseUrl())
+    public StudentDto getByContactId(long id, String... properties) {
+        String url = UriComponentsBuilder.fromUriString(credentials.getBaseUrl())
                 .path("/crm/v3/objects/contacts/{id}")
-                .queryParam("properties", properties.getContactProperties())
+                .queryParam("properties", String.join(",", properties))
                 .buildAndExpand(id)
                 .toUriString();
 

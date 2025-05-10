@@ -4,5 +4,5 @@ import com.rebellworksllm.backend.matching.application.dto.StudentDto;
 
 public interface ContactProvider {
 
-    StudentDto getByContactId(long id);
+    StudentDto getByContactId(long id, String... properties);
 }
