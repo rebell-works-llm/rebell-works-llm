@@ -14,5 +14,10 @@
       "name": "openai.api.key",
       "type": "java.lang.String",
       "description": "Description for openai.api.key."
+    },
+    {
+      "name": "whatsapp.tester.phone_number",
+      "type": "java.lang.String",
+      "description": "Description for whatsapp.tester.phonenumber."
     }
   ] }
