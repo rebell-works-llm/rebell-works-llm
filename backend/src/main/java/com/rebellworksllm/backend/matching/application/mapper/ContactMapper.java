@@ -1,13 +1,13 @@
 package com.rebellworksllm.backend.matching.application.mapper;
 
-import com.rebellworksllm.backend.matching.application.dto.ContactResponse;
+import com.rebellworksllm.backend.matching.application.dto.ContactRequest;
 import com.rebellworksllm.backend.matching.application.dto.StudentDto;
 
 import java.util.Map;
 
 public class ContactMapper {
 
-    public static StudentDto toStudentDto(ContactResponse response) {
+    public static StudentDto toStudentDto(ContactRequest response) {
         Map<String, String> props = response.properties();
 
         return new StudentDto(

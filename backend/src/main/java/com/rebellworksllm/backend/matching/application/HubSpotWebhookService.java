@@ -12,37 +12,45 @@ import java.util.List;
 @Service
 public class HubSpotWebhookService {
 
-    private final StudentService studentService;
+    private static final int FIRST_MATCH_LIMIT = 5;
+
+    private final ContactProvider studentService;
     private final VacancyService vacancyService;
-    private final StudentJobMatchingService studentJobMatchingService;
-    private final TextEmbedder textEmbedder;
+    private final TextEmbedder embedder;
+    private final StudentJobMatchingService matchingService;
     private final WhatsAppService whatsAppService;
 
-    public HubSpotWebhookService(StudentService studentService,
+    public HubSpotWebhookService(ContactProvider studentService,
                                  VacancyService vacancyService,
-                                 StudentJobMatchingService studentJobMatchingService,
-                                 TextEmbedder textEmbedder,
+                                 TextEmbedder embedder,
+                                 StudentJobMatchingService matchingService,
                                  WhatsAppService whatsAppService) {
         this.studentService = studentService;
         this.vacancyService = vacancyService;
-        this.studentJobMatchingService = studentJobMatchingService;
-        this.textEmbedder = textEmbedder;
+        this.embedder = embedder;
+        this.matchingService = matchingService;
         this.whatsAppService = whatsAppService;
     }
 
-    public void matchStudent(long id, int matchLimits) {
-        StudentDto studentDto = studentService.getStudentById(id);
+    public void startMatchEventForObject(long objectId) {
+        StudentDto studentDto = studentService.getStudentById(objectId);
         Student student = toStudent(studentDto);
-        matchAndNotifyStudent(student, matchLimits);
-    }
+        List<Vacancy> vacancies = vacancyService.getAllVacancies();
+        List<StudentVacancyMatch> matches = matchingService.findBestMatches(student, vacancies, FIRST_MATCH_LIMIT);
 
-    public void matchStudent(StudentDto studentDto, int matchLimits) {
-        Student student = toStudent(studentDto);
-        matchAndNotifyStudent(student, matchLimits);
+        whatsAppService.sendWithVacancyTemplate(
+                student.phoneNumber(),
+                student.name(),
+                matches.getFirst().vacancy().website(),
+                matches.get(0).vacancy().website(),
+                matches.get(1).vacancy().website(),
+                matches.get(2).vacancy().website(),
+                matches.get(3).vacancy().website()
+        );
     }
 
     private Student toStudent(StudentDto studentDto) {
-        Vectors studentVectors = textEmbedder.embedText(
+        Vectors studentVectors = embedder.embedText(
                 studentDto.study() + " " + studentDto.studyLocation() + " " + studentDto.text()
         );
         return new Student(
@@ -53,21 +61,6 @@ public class HubSpotWebhookService {
                 studentDto.text(),
                 studentDto.studyLocation(),
                 studentVectors
-        );
-    }
-
-    public void matchAndNotifyStudent(Student student, int matchLimits) {
-        List<Vacancy> vacancies = vacancyService.getAllVacancies();
-        List<StudentVacancyMatch> matches = studentJobMatchingService.findBestMatches(student, vacancies, matchLimits);
-
-        whatsAppService.sendWithVacancyTemplate(
-                student.phoneNumber(),
-                student.name(),
-                matches.getFirst().vacancy().website(),
-                matches.get(0).vacancy().website(),
-                matches.get(1).vacancy().website(),
-                matches.get(2).vacancy().website(),
-                matches.get(3).vacancy().website()
         );
     }
 }

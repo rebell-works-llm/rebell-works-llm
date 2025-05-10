@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/hubspot/contacts")
 public class HubSpotWebhookController {
 
-    private static final int FIRST_MATCH_LIMIT = 5;
-
     private final HubSpotWebhookService webhookService;
 
     public HubSpotWebhookController(HubSpotWebhookService webhookService) {
@@ -22,7 +20,7 @@ public class HubSpotWebhookController {
 
     @PostMapping("/created")
     public ResponseEntity<HubSpotWebhookResponse> handleContactCreation(@RequestBody HubSpotWebhookPayload payload) {
-        webhookService.matchStudent(payload.objectId(), FIRST_MATCH_LIMIT);
+        webhookService.startMatchEventForObject(payload.objectId());
         HubSpotWebhookResponse response = new HubSpotWebhookResponse(
                 Integer.parseInt(HttpStatus.OK.toString()),
                 "Student matched successfully"

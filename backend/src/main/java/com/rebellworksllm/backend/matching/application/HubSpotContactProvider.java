@@ -1,8 +1,9 @@
 package com.rebellworksllm.backend.matching.application;
 
-import com.rebellworksllm.backend.matching.application.dto.ContactResponse;
+import com.rebellworksllm.backend.matching.application.dto.ContactRequest;
 import com.rebellworksllm.backend.matching.application.dto.StudentDto;
 import com.rebellworksllm.backend.matching.application.exception.StudentNotFoundException;
+import com.rebellworksllm.backend.matching.domain.ContactProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -12,13 +13,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 import static com.rebellworksllm.backend.matching.application.mapper.ContactMapper.toStudentDto;
 
 @Service
-public class HubSpotStudentService implements StudentService {
+public class HubSpotContactProvider implements ContactProvider {
 
     private static final String HUBSPOT_CRM_CONTACT_URL = "https://api.hubapi.com/crm/v3/objects/contacts";
 
     private final RestTemplate restTemplate;
 
-    public HubSpotStudentService(@Qualifier("HubSpotRestTemplate") RestTemplate restTemplate) {
+    public HubSpotContactProvider(@Qualifier("HubSpotRestTemplate") RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
@@ -30,7 +31,7 @@ public class HubSpotStudentService implements StudentService {
                 .buildAndExpand(id)
                 .toUriString();
 
-        ResponseEntity<ContactResponse> response = restTemplate.getForEntity(url, ContactResponse.class);
+        ResponseEntity<ContactRequest> response = restTemplate.getForEntity(url, ContactRequest.class);
 
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
             throw new StudentNotFoundException("Could not fetch contact with ID " + id);

@@ -1,8 +1,8 @@
-package com.rebellworksllm.backend.matching.application;
+package com.rebellworksllm.backend.matching.domain;
 
 import com.rebellworksllm.backend.matching.application.dto.StudentDto;
 
-public interface StudentService {
+public interface ContactProvider {
 
     StudentDto getStudentById(long id);
 }

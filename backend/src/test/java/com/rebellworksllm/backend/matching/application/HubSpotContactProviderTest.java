@@ -11,10 +11,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-public class HubSpotStudentServiceTest {
+public class HubSpotContactProviderTest {
 
-    private HubSpotStudentService studentService;
+    private HubSpotContactProvider studentService;
     private MockRestServiceServer mockServer;
+
 
     @BeforeEach
     void setUp() {
@@ -25,7 +26,7 @@ public class HubSpotStudentServiceTest {
             return execution.execute(request, body);
         });
 
-        studentService = new HubSpotStudentService(restTemplate);
+        studentService = new HubSpotContactProvider(restTemplate);
         mockServer = MockRestServiceServer.createServer(restTemplate);
     }
 
