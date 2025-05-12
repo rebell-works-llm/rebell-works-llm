@@ -37,10 +37,8 @@ public class HubSpotWebhookService {
     }
 
     public void startMatchEventForObject(long objectId) {
-        String[] properties = hubSpotCredentials.getContactProperties() != null
-                ? hubSpotCredentials.getContactProperties().split(",")
-                : new String[0];
-        StudentDto studentDto = studentService.getByContactId(objectId, properties);
+        StudentDto studentDto = studentService.getByIdWithProperties(objectId, hubSpotCredentials.getContactProperties());
+
         Student student = toStudent(studentDto);
         List<Vacancy> vacancies = vacancyService.getAllVacancies();
         List<StudentVacancyMatch> matches = matchingService.findBestMatches(student, vacancies, FIRST_MATCH_LIMIT);

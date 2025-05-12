@@ -16,6 +16,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 public class HubSpotContactProviderTest {
 
+    private HubSpotCredentials properties;
     private HubSpotContactProvider contactProvider;
     private MockRestServiceServer mockServer;
 
@@ -27,7 +28,7 @@ public class HubSpotContactProviderTest {
             return execution.execute(request, body);
         }));
 
-        HubSpotCredentials properties = new HubSpotCredentials();
+        properties = new HubSpotCredentials();
         properties.setApiKey("test-token");
         properties.setBaseUrl("https://api.hubapi.com");
         properties.setContactProperties("firstname,email,studie,phone,study,op_zoek_naar_,location,geboortedatum");
@@ -59,7 +60,7 @@ public class HubSpotContactProviderTest {
                 .andExpect(header("Authorization", "Bearer test-token"))
                 .andRespond(withSuccess(jsonResponse, MediaType.APPLICATION_JSON));
 
-        StudentDto studentDto = contactProvider.getByContactId(1L);
+        StudentDto studentDto = contactProvider.getByIdWithProperties(1L, properties.getContactProperties());
 
         assertEquals("John Doe", studentDto.fullName());
         assertEquals("john.doe@example.com", studentDto.email());

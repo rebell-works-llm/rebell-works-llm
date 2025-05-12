@@ -26,7 +26,7 @@ public class HubSpotContactProvider implements ContactProvider {
     }
 
     @Override
-    public StudentDto getByContactId(long id, String... properties) {
+    public StudentDto getByIdWithProperties(long id, String properties) {
         String url = UriComponentsBuilder.fromUriString(credentials.getBaseUrl())
                 .path("/crm/v3/objects/contacts/{id}")
                 .queryParam("properties", String.join(",", properties))
