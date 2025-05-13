@@ -1,5 +1,6 @@
 package com.rebellworksllm.backend.matching.application;
 
+import com.rebellworksllm.backend.embedding.domain.Vectors;
 import com.rebellworksllm.backend.matching.domain.Student;
 import com.rebellworksllm.backend.matching.domain.StudentVacancyMatch;
 import com.rebellworksllm.backend.matching.domain.Vacancy;
@@ -9,9 +10,10 @@ import org.junit.jupiter.api.Test;
 import java.text.DecimalFormat;
 import java.util.List;
 
+import static com.rebellworksllm.backend.matching.application.StudentFactory.createStudent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CosinusSimularityMatchingServiceTest {
+public class CosinusSimilarityMatchingServiceTest {
 
     private CosSimStudentJobMatchingService matchingService;
     private static final DecimalFormat df = new DecimalFormat("0.00");
@@ -24,12 +26,12 @@ public class CosinusSimularityMatchingServiceTest {
     @Test
     void testMatchingService() {
         // Arrange
-        List<Double> matchingVec = List.of(2.0, 2.0);
-        Student student = new Student("Game Job",  matchingVec);
+        Vectors matchingVec = new Vectors(List.of(2.0, 2.0));
+        Student student = createStudent(matchingVec);
         List<Vacancy> vacancies = List.of(
-                new Vacancy("Software Intern Vacancy", List.of(1.0, 2.0)),
-                new Vacancy("Createve Intern Vacancy", List.of(2.0, 3.0)),
-                new Vacancy("Game Development Intern", matchingVec)
+                new Vacancy("Software Intern Vacancy", "website", new Vectors(List.of(1.0, 2.0))),
+                new Vacancy("Createve Intern Vacancy", "website", new Vectors(List.of(2.0, 3.0))),
+                new Vacancy("Game Development Intern", "website", matchingVec)
         );
 
         // Act
@@ -37,7 +39,7 @@ public class CosinusSimularityMatchingServiceTest {
 
         // Assert
         assertEquals(1, foundMatches.size());
-        assertEquals(matchingVec, foundMatches.getFirst().vacancy().vector());
+        assertEquals(matchingVec, foundMatches.getFirst().vacancy().vectors());
         assertEquals("1,00", df.format(foundMatches.getFirst().matchScore()));
     }
 }

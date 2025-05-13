@@ -1,11 +1,9 @@
-package com.rebellworksllm.backend.matching.application;
+package com.rebellworksllm.backend.embedding.application;
 
-import com.rebellworksllm.backend.embedding.application.OpenAITextEmbedder;
+import com.rebellworksllm.backend.embedding.domain.Vectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -18,8 +16,8 @@ public class OpenAITextEmbedderIntegrationTest {
     @Test
     void testTextEmbedder() {
         String text = "Hello World";
-        List<Double> embeddings = embedder.embedText(text);
+        Vectors vectors = embedder.embedText(text);
 
-        assertEquals(1536, embeddings.size());
+        assertEquals(1536, vectors.embeddings().size());
     }
 }

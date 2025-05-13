@@ -24,7 +24,7 @@ public class CosSimStudentJobMatchingService implements StudentJobMatchingServic
                 .map(vacancy -> new StudentVacancyMatch(
                         vacancy,
                         student,
-                        cosineSimilarity(student.vector(), vacancy.vector())))
+                        cosineSimilarity(student.vectors().embeddings(), vacancy.vectors().embeddings())))
                 .sorted(Comparator.comparingDouble(StudentVacancyMatch::matchScore).reversed())
                 .limit(numOfResults)
                 .collect(Collectors.toList());

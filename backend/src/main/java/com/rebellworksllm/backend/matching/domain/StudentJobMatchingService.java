@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface StudentJobMatchingService {
 
-    List<StudentVacancyMatch> findBestMatches(Student student, List<Vacancy> vacancies, int numOfResults);
+    List<StudentVacancyMatch> findBestMatches(Student student, List<Vacancy> vacancies, int limit);
 }
