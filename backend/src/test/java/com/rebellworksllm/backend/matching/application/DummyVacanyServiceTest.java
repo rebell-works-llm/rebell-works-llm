@@ -16,7 +16,7 @@ public class DummyVacanyServiceTest {
         List<Vacancy> vacancies = service.getAllVacancies();
         Vacancy vacancy = vacancies.getFirst();
 
-        assertEquals(5, vacancies.size());
+        assertEquals(10, vacancies.size());
         assertEquals("Creative Marketing Intern", vacancy.title());
         assertEquals(1536, vacancy.vectors().embeddings().size());
     }
