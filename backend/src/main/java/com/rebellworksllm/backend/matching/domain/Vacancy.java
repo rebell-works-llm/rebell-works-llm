@@ -7,6 +7,8 @@ public record Vacancy(
 
         String title,
         String website,
-        Vectors vectors
+        Vectors vectors,
+        double priority,
+        int matches
 ) {
 }

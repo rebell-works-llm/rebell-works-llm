@@ -27,6 +27,8 @@ public class DummyVacancyService implements VacancyService {
         for (Object object : readJsonFile()) {
             JSONObject vacancyObject = (JSONObject) object;
             JSONArray embeddingArray = (JSONArray) vacancyObject.get("embedding");
+            double priority = (double) vacancyObject.get("priority");
+            int matches = (int) vacancyObject.get("matches");
             List<Double> vector = new ArrayList<>();
 
             for (Object o : embeddingArray) {
@@ -36,7 +38,9 @@ public class DummyVacancyService implements VacancyService {
             Vacancy vacancy = new Vacancy(
                     vacancyObject.get("title").toString(),
                     vacancyObject.get("website").toString(),
-                    new Vectors(vector)
+                    new Vectors(vector),
+                    priority,
+                    matches
             );
             vacancies.add(vacancy);
         }

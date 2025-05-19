@@ -16,6 +16,8 @@
       "working_hours": 40,
       "function": "Marketing & Branding Intern",
       "employment": "internship",
+      "priority": 0,
+      "matches": 0,
       "embedding": [
         -0.012748254,
         -0.023499327,
@@ -1571,6 +1573,8 @@
       "working_hours": 40,
       "function": "Graphic Design Intern",
       "employment": "internship",
+      "priority": 0,
+      "matches": 0,
       "embedding": [
         -0.009040337,
         -0.042233218,
@@ -3126,6 +3130,8 @@
       "working_hours": 40,
       "function": "Content Writing Intern",
       "employment": "internship",
+      "priority": 0,
+      "matches": 0,
       "embedding": [
         -0.015952913,
         -0.00026851892,
@@ -4681,6 +4687,8 @@
       "working_hours": 40,
       "function": "Video Editing Intern",
       "employment": "internship",
+      "priority": 0,
+      "matches": 0,
       "embedding": [
         -0.011301898,
         -0.03968745,
@@ -6236,6 +6244,8 @@
       "working_hours": 40,
       "function": "Social Media Intern",
       "employment": "internship",
+      "priority": 0,
+      "matches": 0,
       "embedding": [
         -0.028958637,
         -0.038946196,
@@ -7792,6 +7802,8 @@
       "working_hours": 40,
       "function": "Healthcare Communications Intern",
       "employment": "internship",
+      "priority": 0,
+      "matches": 0,
       "embedding": [
       -0.016991457,
       -0.018686661,
@@ -9348,6 +9360,8 @@
       "working_hours": 40,
       "function": "Legal Intern",
       "employment": "internship",
+      "priority": 0,
+      "matches": 0,
       "embedding": [
         -0.006512218,
         -0.020399397,
@@ -10905,6 +10919,8 @@
       "working_hours": 40,
       "function": "Physics Research Intern",
       "employment": "internship",
+      "priority": 0,
+      "matches": 0,
       "embedding": [
         -0.01676375,
         -0.0038270943,
@@ -12461,6 +12477,8 @@
       "working_hours": 40,
       "function": "Physiotherapy Intern",
       "employment": "internship",
+      "priority": 0,
+      "matches": 0,
       "embedding": [
         -0.0043815197,
         -0.014476328,
@@ -14018,6 +14036,8 @@
       "working_hours": 40,
       "function": "Backend Development Intern",
       "employment": "internship",
+      "priority": 0,
+      "matches": 0,
       "embedding": [
         -0.0020175257,
         -0.02943692,
