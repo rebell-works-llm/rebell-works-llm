@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -45,14 +47,18 @@ public class DummyVacancyService implements VacancyService {
     }
 
     private JSONArray readJsonFile() {
-        ClassLoader classLoader = getClass().getClassLoader();
-        try (FileReader reader = new FileReader(Objects.requireNonNull(classLoader.getResource(JSON_FILE_PATH)).getFile())) {
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(JSON_FILE_PATH)) {
+            if (inputStream == null) {
+                throw new CannotFetchVacancyEmbeddingsException("File not found: " + JSON_FILE_PATH);
+            }
+
+            InputStreamReader reader = new InputStreamReader(inputStream);
             Object obj = new JSONParser().parse(reader);
             JSONObject jsonObject = (JSONObject) obj;
 
             return (JSONArray) jsonObject.get("dummy-vacancies");
-        } catch (IOException | ParseException | NullPointerException e) {
-            throw new CannotFetchVacancyEmbeddingsException("Cannot fetch vacancy embeddings", e);
+        } catch (IOException | ParseException e) {
+            throw new CannotFetchVacancyEmbeddingsException("Cannot fetch vacancy embeddings from: " + JSON_FILE_PATH, e);
         }
     }
 }
