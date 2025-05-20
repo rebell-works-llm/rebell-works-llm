@@ -59,6 +59,13 @@
             <version>9.3.0</version>
         </dependency>
 
+        <!-- Dotenv maven -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.json/json -->
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
