@@ -1,4 +1,6 @@
 /.idea
 /backend/src/main/resources/rebell-works-llm-firebase-adminsdk-fbsvc-96612a5d92.json
+*.env
 /.env
+/backend/src/main/resources/.env
 /http-client.env.json
