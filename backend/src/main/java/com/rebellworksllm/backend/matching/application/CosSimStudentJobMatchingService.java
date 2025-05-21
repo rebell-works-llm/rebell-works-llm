@@ -25,7 +25,7 @@ public class CosSimStudentJobMatchingService implements StudentJobMatchingServic
                         vacancy,
                         student,
                         cosineSimilarity(student.vectors().embeddings(), vacancy.vectors().embeddings())))
-                .filter(match -> match.matchScore() >= 0.6)
+                .filter(match -> match.matchScore() >= 0.3)
                 .map(match -> new StudentVacancyMatch(match.vacancy(), match.student(), priorityScore(match)))
                 .sorted(Comparator.comparingDouble(StudentVacancyMatch::matchScore).reversed())
                 .limit(numOfResults)
@@ -55,8 +55,8 @@ public class CosSimStudentJobMatchingService implements StudentJobMatchingServic
 
     private double priorityScore(StudentVacancyMatch match) {
         double priorityScore = match.matchScore() + match.vacancy().priority();
-        if (match.vacancy().matches() < 5) {
-            priorityScore += (0.5 - match.vacancy().matches()*0.1);
+        if (match.vacancy().matches() < 2) {
+            priorityScore += (0.5 - match.vacancy().matches()*0.25);
         }
         return priorityScore;
     }
