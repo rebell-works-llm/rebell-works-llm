@@ -24,7 +24,7 @@ public class HubSpotWebhookController {
         webhookService.startMatchEventForObject(payload.objectId());
         HubSpotWebhookResponse response = new HubSpotWebhookResponse(
                 HttpStatus.OK.value(),
-                "Student matched successfully"
+                "StudentContact matched successfully"
         );
         return ResponseEntity.ok(response);
     }

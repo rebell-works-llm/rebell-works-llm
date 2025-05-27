@@ -18,6 +18,6 @@ public class DummyVacanyServiceTest {
 
         assertEquals(10, vacancies.size());
         assertEquals("Creative Marketing Intern", vacancy.title());
-        assertEquals(1536, vacancy.vectors().embeddings().size());
+        assertEquals(1536, vacancy.embeddingResult().embeddings().size());
     }
 }

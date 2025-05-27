@@ -1,6 +1,6 @@
 package com.rebellworksllm.backend.matching.domain;
 
-import com.rebellworksllm.backend.embedding.domain.Vectors;
+import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
 
 public record Student(
 
@@ -10,7 +10,7 @@ public record Student(
         String study,
         String lookingForText,
         String studyLocation,
-        Vectors vectors
+        EmbeddingResult embeddingResult
 ) {
 
 }

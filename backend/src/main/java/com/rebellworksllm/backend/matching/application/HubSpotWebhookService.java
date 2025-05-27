@@ -1,11 +1,11 @@
 package com.rebellworksllm.backend.matching.application;
 
-import com.rebellworksllm.backend.embedding.domain.TextEmbedder;
-import com.rebellworksllm.backend.embedding.domain.Vectors;
-import com.rebellworksllm.backend.matching.application.dto.StudentDto;
-import com.rebellworksllm.backend.matching.config.HubSpotCredentials;
+import com.rebellworksllm.backend.hubspot.domain.StudentContact;
+import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
+import com.rebellworksllm.backend.hubspot.application.HubSpotStudentService;
 import com.rebellworksllm.backend.matching.domain.*;
-import com.rebellworksllm.backend.whatsapp.application.WhatsAppService;
+import com.rebellworksllm.backend.openai.domain.OpenAIEmbeddingService;
+import com.rebellworksllm.backend.whatsapp.domain.WhatsAppService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,37 +15,36 @@ public class HubSpotWebhookService {
 
     private static final int FIRST_MATCH_LIMIT = 5;
 
-    private final HubSpotCredentials hubSpotCredentials;
-    private final ContactProvider studentService;
+    private final HubSpotStudentService studentService;
     private final VacancyService vacancyService;
-    private final TextEmbedder embedder;
+    private final OpenAIEmbeddingService embeddingService;
     private final StudentJobMatchingService matchingService;
     private final WhatsAppService whatsAppService;
 
-    public HubSpotWebhookService(HubSpotCredentials hubSpotCredentials,
-                                 ContactProvider studentService,
+    public HubSpotWebhookService(HubSpotStudentService studentService,
                                  VacancyService vacancyService,
-                                 TextEmbedder embedder,
+                                 OpenAIEmbeddingService embeddingService,
                                  StudentJobMatchingService matchingService,
-                                 WhatsAppService whatsAppService) {
-        this.hubSpotCredentials = hubSpotCredentials;
+                                 WhatsAppService whatsAppService
+    ) {
         this.studentService = studentService;
         this.vacancyService = vacancyService;
-        this.embedder = embedder;
+        this.embeddingService = embeddingService;
         this.matchingService = matchingService;
         this.whatsAppService = whatsAppService;
     }
 
-    public void startMatchEventForObject(long objectId) {
-        StudentDto studentDto = studentService.getByIdWithProperties(objectId, hubSpotCredentials.getContactProperties());
 
-        Student student = toStudent(studentDto);
+    public void startMatchEventForObject(long objectId) {
+        StudentContact studentContact = studentService.getStudentById(objectId);
+
+        Student realStudent = toStudent(studentContact);
         List<Vacancy> vacancies = vacancyService.getAllVacancies();
-        List<StudentVacancyMatch> matches = matchingService.findBestMatches(student, vacancies, FIRST_MATCH_LIMIT);
+        List<StudentVacancyMatch> matches = matchingService.findBestMatches(realStudent, vacancies, FIRST_MATCH_LIMIT);
 
         whatsAppService.sendWithVacancyTemplate(
-                student.phoneNumber(),
-                student.name(),
+                studentContact.phoneNumber(),
+                studentContact.fullName(),
                 matches.getFirst().vacancy().website(),
                 matches.get(0).vacancy().website(),
                 matches.get(1).vacancy().website(),
@@ -54,18 +53,18 @@ public class HubSpotWebhookService {
         );
     }
 
-    private Student toStudent(StudentDto studentDto) {
-        Vectors studentVectors = embedder.embedText(
-                studentDto.study() + " " + studentDto.studyLocation() + " " + studentDto.text()
+    private Student toStudent(StudentContact studentContact) {
+        EmbeddingResult studentEmbeddingResult = embeddingService.embedText(
+                studentContact.study() + " " + studentContact.studyLocation() + " " + studentContact.text()
         );
         return new Student(
-                studentDto.fullName(),
-                studentDto.email(),
-                studentDto.phoneNumber(),
-                studentDto.study(),
-                studentDto.text(),
-                studentDto.studyLocation(),
-                studentVectors
+                studentContact.fullName(),
+                studentContact.email(),
+                studentContact.phoneNumber(),
+                studentContact.study(),
+                studentContact.text(),
+                studentContact.studyLocation(),
+                studentEmbeddingResult
         );
     }
 }
