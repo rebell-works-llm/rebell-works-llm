@@ -24,7 +24,7 @@ public class CosSimStudentJobMatchingService implements StudentJobMatchingServic
                 .map(vacancy -> new StudentVacancyMatch(
                         vacancy,
                         student,
-                        cosineSimilarity(student.vectors().embeddings(), vacancy.vectors().embeddings())))
+                        cosineSimilarity(student.embeddingResult().embeddings(), vacancy.embeddingResult().embeddings())))
                 .sorted(Comparator.comparingDouble(StudentVacancyMatch::matchScore).reversed())
                 .limit(numOfResults)
                 .collect(Collectors.toList());
@@ -32,7 +32,7 @@ public class CosSimStudentJobMatchingService implements StudentJobMatchingServic
 
     private Double cosineSimilarity(final List<Double> vec1, final List<Double> vec2) {
         if (vec1.size() != vec2.size()) {
-            throw new IllegalArgumentException("Vectors must have the same length");
+            throw new IllegalArgumentException("EmbeddingResult must have the same length");
         }
 
         double dotProduct = 0.0;
