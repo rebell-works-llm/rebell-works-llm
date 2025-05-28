@@ -1,7 +1,6 @@
 package com.rebellworksllm.backend.matching.application;
 
 import com.rebellworksllm.backend.matching.domain.Student;
-import com.rebellworksllm.backend.matching.domain.StudentJobMatchingService;
 import com.rebellworksllm.backend.matching.domain.StudentVacancyMatch;
 import com.rebellworksllm.backend.matching.domain.Vacancy;
 import org.springframework.stereotype.Service;

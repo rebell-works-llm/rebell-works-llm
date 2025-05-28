@@ -1,7 +1,6 @@
 package com.rebellworksllm.backend.openai.application;
 
-import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
-import com.rebellworksllm.backend.openai.domain.OpenAIEmbeddingService;
+import com.rebellworksllm.backend.openai.presentation.dto.EmbeddingResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

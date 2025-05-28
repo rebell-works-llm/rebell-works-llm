@@ -1,6 +1,6 @@
 package com.rebellworksllm.backend.matching.application;
 
-import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
+import com.rebellworksllm.backend.openai.presentation.dto.EmbeddingResult;
 import com.rebellworksllm.backend.matching.domain.Student;
 
 public class StudentFactory {

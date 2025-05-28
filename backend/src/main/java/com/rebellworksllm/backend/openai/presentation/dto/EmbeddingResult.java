@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.openai.domain;
+package com.rebellworksllm.backend.openai.presentation.dto;
 
 import java.util.List;
 
