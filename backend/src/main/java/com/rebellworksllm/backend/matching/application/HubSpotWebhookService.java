@@ -15,41 +15,42 @@ public class HubSpotWebhookService {
 
     private static final int FIRST_MATCH_LIMIT = 5;
 
-    private final MatchEngine matchEngine;
     private final HubSpotStudentService studentService;
+    private final VacancyService vacancyService;
     private final OpenAIEmbeddingService embeddingService;
+    private final StudentJobMatchingService matchingService;
     private final WhatsAppService whatsAppService;
 
-    public HubSpotWebhookService(MatchEngine matchEngine,
-                                 HubSpotStudentService studentService,
+    public HubSpotWebhookService(HubSpotStudentService studentService,
+                                 VacancyService vacancyService,
                                  OpenAIEmbeddingService embeddingService,
+                                 StudentJobMatchingService matchingService,
                                  WhatsAppService whatsAppService
     ) {
-        this.matchEngine = matchEngine;
         this.studentService = studentService;
+        this.vacancyService = vacancyService;
         this.embeddingService = embeddingService;
+        this.matchingService = matchingService;
         this.whatsAppService = whatsAppService;
     }
 
-    public void processStudentMatch(long id) {
-        StudentContact studentContact = studentService.getStudentById(id);
-        Student student = toStudent(studentContact);
 
-        List<StudentVacancyMatch> matches = matchEngine.query(student, FIRST_MATCH_LIMIT);
+    public void startMatchEventForObject(long objectId) {
+        StudentContact studentContact = studentService.getStudentById(objectId);
 
-        try {
-            whatsAppService.sendWithVacancyTemplate(
-                    studentContact.phoneNumber(),
-                    studentContact.fullName(),
-                    matches.getFirst().vacancy().website(),
-                    matches.get(0).vacancy().website(),
-                    matches.get(1).vacancy().website(),
-                    matches.get(2).vacancy().website(),
-                    matches.get(3).vacancy().website()
-            );
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        Student realStudent = toStudent(studentContact);
+        List<Vacancy> vacancies = vacancyService.getAllVacancies();
+        List<StudentVacancyMatch> matches = matchingService.findBestMatches(realStudent, vacancies, FIRST_MATCH_LIMIT);
+
+        whatsAppService.sendWithVacancyTemplate(
+                studentContact.phoneNumber(),
+                studentContact.fullName(),
+                matches.getFirst().vacancy().website(),
+                matches.get(0).vacancy().website(),
+                matches.get(1).vacancy().website(),
+                matches.get(2).vacancy().website(),
+                matches.get(3).vacancy().website()
+        );
     }
 
     private Student toStudent(StudentContact studentContact) {

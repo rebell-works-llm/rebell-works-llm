@@ -21,7 +21,7 @@ public class HubSpotWebhookController {
 
     @PostMapping("/created")
     public ResponseEntity<HubSpotWebhookResponse> handleContactCreation(@Valid @RequestBody HubSpotWebhookPayload payload) {
-        webhookService.processStudentMatch(payload.objectId());
+        webhookService.startMatchEventForObject(payload.objectId());
         HubSpotWebhookResponse response = new HubSpotWebhookResponse(
                 HttpStatus.OK.value(),
                 "StudentContact matched successfully"
