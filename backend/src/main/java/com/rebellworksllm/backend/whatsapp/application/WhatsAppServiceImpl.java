@@ -1,7 +1,6 @@
 package com.rebellworksllm.backend.whatsapp.application;
 
 import com.rebellworksllm.backend.whatsapp.config.WhatsAppCredentials;
-import com.rebellworksllm.backend.whatsapp.domain.WhatsAppService;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;

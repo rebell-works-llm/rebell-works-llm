@@ -1,11 +1,11 @@
 package com.rebellworksllm.backend.matching.application;
 
-import com.rebellworksllm.backend.hubspot.domain.StudentContact;
-import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
+import com.rebellworksllm.backend.hubspot.presentation.dto.StudentContact;
+import com.rebellworksllm.backend.openai.presentation.dto.EmbeddingResult;
 import com.rebellworksllm.backend.hubspot.application.HubSpotStudentService;
 import com.rebellworksllm.backend.matching.domain.*;
-import com.rebellworksllm.backend.openai.domain.OpenAIEmbeddingService;
-import com.rebellworksllm.backend.whatsapp.domain.WhatsAppService;
+import com.rebellworksllm.backend.openai.application.OpenAIEmbeddingService;
+import com.rebellworksllm.backend.whatsapp.application.WhatsAppService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

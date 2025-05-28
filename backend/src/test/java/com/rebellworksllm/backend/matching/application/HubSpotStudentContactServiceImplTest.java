@@ -2,7 +2,7 @@ package com.rebellworksllm.backend.matching.application;
 
 import com.rebellworksllm.backend.hubspot.application.HubSpotStudentService;
 import com.rebellworksllm.backend.hubspot.application.HubSpotStudentServiceImpl;
-import com.rebellworksllm.backend.hubspot.domain.StudentContact;
+import com.rebellworksllm.backend.hubspot.presentation.dto.StudentContact;
 import com.rebellworksllm.backend.hubspot.config.HubSpotCredentials;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

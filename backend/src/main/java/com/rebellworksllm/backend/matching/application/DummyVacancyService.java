@@ -1,9 +1,8 @@
 package com.rebellworksllm.backend.matching.application;
 
-import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
+import com.rebellworksllm.backend.openai.presentation.dto.EmbeddingResult;
 import com.rebellworksllm.backend.matching.application.exception.CannotFetchVacancyEmbeddingsException;
 import com.rebellworksllm.backend.matching.domain.Vacancy;
-import com.rebellworksllm.backend.matching.domain.VacancyService;
 import org.json.simple
 
         .JSONArray;
