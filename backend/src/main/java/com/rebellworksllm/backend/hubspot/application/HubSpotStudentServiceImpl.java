@@ -50,14 +50,32 @@ public class HubSpotStudentServiceImpl implements HubSpotStudentService {
             throw new HubSpotStudentNotFoundException("Invalid response: properties are null");
         }
         Map<String, String> props = request.properties();
+
+        String rawPhoneNumber = props.getOrDefault("phone", "");
+        String correctlyFormattedNumber = reFormatPhoneNumber(rawPhoneNumber);
+
         return new StudentContact(
                 props.getOrDefault("firstname", ""),
                 props.getOrDefault("email", ""),
-                props.getOrDefault("phone", ""),
+                correctlyFormattedNumber,
                 props.getOrDefault("studie", ""),
                 props.getOrDefault("op_zoek_naar_", ""),
                 props.getOrDefault("location", ""),
                 props.getOrDefault("geboortedatum", "")
         );
+    }
+
+    private String reFormatPhoneNumber(String phone) {
+
+        String cleaned = phone.replaceAll("[\\s\\-()]", "");
+
+
+        if (cleaned.startsWith("+31")) {
+            cleaned = cleaned.substring(3);
+        } else if (cleaned.startsWith("0")) {
+            cleaned = cleaned.substring(1);
+        }
+
+        return "31" + cleaned;
     }
 }
