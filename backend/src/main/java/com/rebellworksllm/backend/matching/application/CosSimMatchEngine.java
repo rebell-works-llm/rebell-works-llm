@@ -1,12 +1,15 @@
 package com.rebellworksllm.backend.matching.application;
 
+import com.rebellworksllm.backend.matching.application.exception.MatchingException;
 import com.rebellworksllm.backend.matching.domain.*;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
 
 @Service
+@Profile("dev")
 public class CosSimMatchEngine implements MatchEngine {
 
     private final StudentJobMatchingService matchingService;
@@ -19,10 +22,12 @@ public class CosSimMatchEngine implements MatchEngine {
 
     @Override
     public List<StudentVacancyMatch> query(Student student, int amount) {
-
-        List<Vacancy> vacancies = vacancyService.getAllVacancies();
-        List<StudentVacancyMatch> matches = matchingService.findBestMatches(student, vacancies, amount);
-
-        return Collections.unmodifiableList(matches);
+        try {
+            List<Vacancy> vacancies = vacancyService.getAllVacancies();
+            List<StudentVacancyMatch> matches = matchingService.findBestMatches(student, vacancies, amount);
+            return Collections.unmodifiableList(matches);
+        } catch (Exception e) {
+            throw new MatchingException("Cosinus similarity matching failed", e);
+        }
     }
 }

@@ -1,6 +1,5 @@
-package com.rebellworksllm.backend.matching.application;
+package com.rebellworksllm.backend.hubspot.application;
 
-import com.rebellworksllm.backend.hubspot.application.HubSpotStudentService;
 import com.rebellworksllm.backend.hubspot.domain.StudentContact;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
