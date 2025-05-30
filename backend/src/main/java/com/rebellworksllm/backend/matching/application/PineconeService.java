@@ -1,5 +1,6 @@
 package com.rebellworksllm.backend.matching.application;
 
+import com.rebellworksllm.backend.matching.application.dto.PineconeMatch;
 import com.rebellworksllm.backend.matching.application.dto.PineconeQueryRequest;
 import com.rebellworksllm.backend.matching.application.dto.PineconeQueryResult;
 import com.rebellworksllm.backend.matching.application.exception.MatchingException;
@@ -40,15 +41,23 @@ public class PineconeService {
                 throw new MatchingException("Pinecone API error: " + response.getStatusCode());
             }
 
-            return response.getBody().matches().stream()
+            List<PineconeMatch> matches = response.getBody().matches();
+
+            return matches.stream()
+                    .filter(this::validateMatch)
                     .map(match -> new StudentVacancyMatch(
                             new Vacancy(match.metadata().title(), match.metadata().link(), new EmbeddingResult(match.values())),
                             student,
-                            match.score()
-                    ))
+                            match.score()))
                     .toList();
         } catch (Exception e) {
-            throw new MatchingException("Pinecone query failed", e);
+            throw new MatchingException("Pinecone query failed: " + e.getMessage(), e);
         }
+    }
+
+    private boolean validateMatch(PineconeMatch match) {
+        return (match.metadata() != null) &&
+                (match.metadata().title()) != null &&
+                (match.metadata().link()) != null;
     }
 }

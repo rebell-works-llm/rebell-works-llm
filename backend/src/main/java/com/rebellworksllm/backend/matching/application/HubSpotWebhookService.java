@@ -1,6 +1,7 @@
 package com.rebellworksllm.backend.matching.application;
 
 import com.rebellworksllm.backend.hubspot.domain.StudentContact;
+import com.rebellworksllm.backend.matching.application.exception.MatchingException;
 import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
 import com.rebellworksllm.backend.hubspot.application.HubSpotStudentService;
 import com.rebellworksllm.backend.matching.domain.*;
@@ -36,6 +37,9 @@ public class HubSpotWebhookService {
         Student student = toStudent(studentContact);
 
         List<StudentVacancyMatch> matches = matchEngine.query(student, FIRST_MATCH_LIMIT);
+        if (matches.isEmpty()) {
+            throw new MatchingException("No vacancy matches found for student: " + studentContact.fullName());
+        }
 
         try {
             whatsAppService.sendWithVacancyTemplate(
