@@ -53,9 +53,7 @@ public class HubSpotWebhookService {
     }
 
     private Student toStudent(StudentContact studentContact) {
-        EmbeddingResult studentEmbeddingResult = embeddingService.embedText(
-                studentContact.study() + " " + studentContact.studyLocation() + " " + studentContact.text()
-        );
+        EmbeddingResult studentEmbeddingResult = embeddingService.embedText(studentContact.stringify());
         return new Student(
                 studentContact.fullName(),
                 studentContact.email(),
