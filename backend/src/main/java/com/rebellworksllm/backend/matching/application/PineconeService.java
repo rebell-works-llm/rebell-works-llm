@@ -42,6 +42,9 @@ public class PineconeService {
             }
 
             List<PineconeMatch> matches = response.getBody().matches();
+            if (matches == null || matches.isEmpty()) {
+                throw new MatchingException("No matches found for student in Pinecone query");
+            }
 
             return matches.stream()
                     .filter(this::validateMatch)

@@ -1,6 +1,8 @@
 package com.rebellworksllm.backend.matching.presentation;
 
 import com.rebellworksllm.backend.matching.application.HubSpotWebhookService;
+import com.rebellworksllm.backend.matching.presentation.dto.HubSpotWebhookPayload;
+import com.rebellworksllm.backend.matching.presentation.dto.HubSpotWebhookResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
