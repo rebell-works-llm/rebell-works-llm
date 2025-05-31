@@ -7,7 +7,7 @@ import com.rebellworksllm.backend.matching.application.exception.MatchingExcepti
 import com.rebellworksllm.backend.matching.domain.Student;
 import com.rebellworksllm.backend.matching.domain.StudentVacancyMatch;
 import com.rebellworksllm.backend.matching.domain.Vacancy;
-import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
+import com.rebellworksllm.backend.openai.presentation.dto.EmbeddingResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
