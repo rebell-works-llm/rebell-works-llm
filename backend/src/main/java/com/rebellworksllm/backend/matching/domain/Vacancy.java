@@ -5,6 +5,7 @@ import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
 
 public record Vacancy(
 
+        String id,
         String title,
         String website,
         EmbeddingResult embeddingResult

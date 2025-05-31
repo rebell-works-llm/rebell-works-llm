@@ -33,6 +33,7 @@ public class DummyVacancyService implements VacancyService {
             }
 
             Vacancy vacancy = new Vacancy(
+                    vacancyObject.get("id").toString(),
                     vacancyObject.get("title").toString(),
                     vacancyObject.get("website").toString(),
                     new EmbeddingResult(vector)

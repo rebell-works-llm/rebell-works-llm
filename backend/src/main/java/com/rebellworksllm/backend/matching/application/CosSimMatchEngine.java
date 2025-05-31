@@ -2,14 +2,14 @@ package com.rebellworksllm.backend.matching.application;
 
 import com.rebellworksllm.backend.matching.application.exception.MatchingException;
 import com.rebellworksllm.backend.matching.domain.*;
-import org.springframework.context.annotation.Profile;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
 
 @Service
-@Profile("dev")
+@Qualifier("cosSimMatchEngine")
 public class CosSimMatchEngine implements MatchEngine {
 
     private final StudentJobMatchingService matchingService;

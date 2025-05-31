@@ -7,13 +7,19 @@ import com.rebellworksllm.backend.hubspot.application.HubSpotStudentService;
 import com.rebellworksllm.backend.matching.domain.*;
 import com.rebellworksllm.backend.openai.domain.OpenAIEmbeddingService;
 import com.rebellworksllm.backend.whatsapp.domain.WhatsAppService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.rebellworksllm.backend.matching.application.util.LogUtils.maskPhone;
+
 @Service
 public class HubSpotWebhookService {
 
+    private static final Logger logger = LoggerFactory.getLogger(HubSpotWebhookService.class);
     private static final int FIRST_MATCH_LIMIT = 5;
 
     private final MatchEngine matchEngine;
@@ -21,11 +27,10 @@ public class HubSpotWebhookService {
     private final OpenAIEmbeddingService embeddingService;
     private final WhatsAppService whatsAppService;
 
-    public HubSpotWebhookService(MatchEngine matchEngine,
+    public HubSpotWebhookService(@Qualifier("pineconeSupabaseMatchEngine") MatchEngine matchEngine,
                                  HubSpotStudentService studentService,
                                  OpenAIEmbeddingService embeddingService,
-                                 WhatsAppService whatsAppService
-    ) {
+                                 WhatsAppService whatsAppService) {
         this.matchEngine = matchEngine;
         this.studentService = studentService;
         this.embeddingService = embeddingService;
@@ -33,15 +38,26 @@ public class HubSpotWebhookService {
     }
 
     public void processStudentMatch(long id) {
+        logger.info("Starting matching progress for ID: {}", id);
         StudentContact studentContact = studentService.getStudentById(id);
+        logger.debug("Fetched HubSpot student: {}", studentContact.fullName());
         Student student = toStudent(studentContact);
-
         List<StudentVacancyMatch> matches = matchEngine.query(student, FIRST_MATCH_LIMIT);
+
+        // Include job details in log
+        List<String> vacancyIds = matches.stream()
+                .filter(match -> !match.vacancy().id().isEmpty())
+                .map(match -> match.vacancy().id())
+                .toList();
+        logger.info("Retrieved {} matches for student: {} with vacancy IDs: {}", matches.size(), studentContact.fullName(), vacancyIds);
+
         if (matches.isEmpty()) {
+            logger.warn("No vacancy matches found for student: {}", studentContact.fullName());
             throw new MatchingException("No vacancy matches found for student: " + studentContact.fullName());
         }
 
         try {
+            logger.info("Sending WhatsApp message to name: {}, phone: {}", studentContact.fullName(), maskPhone(studentContact.phoneNumber()));
             whatsAppService.sendWithVacancyTemplate(
                     studentContact.phoneNumber(),
                     studentContact.fullName(),
@@ -51,13 +67,17 @@ public class HubSpotWebhookService {
                     matches.get(2).vacancy().website(),
                     matches.get(3).vacancy().website()
             );
+            logger.info("WhatsApp message sent successfully to student: {}, phone: {}", studentContact.fullName(), maskPhone(studentContact.phoneNumber()));
         } catch (Exception e) {
+            logger.error("Failed to send WhatsApp message for student: {}, error: {}", studentContact.fullName(), e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
 
     private Student toStudent(StudentContact studentContact) {
+        logger.debug("Embedding text for student: {}", studentContact.fullName());
         EmbeddingResult studentEmbeddingResult = embeddingService.embedText(studentContact.stringify());
+
         return new Student(
                 studentContact.fullName(),
                 studentContact.email(),
