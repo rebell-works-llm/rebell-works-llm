@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.whatsapp.domain;
+package com.rebellworksllm.backend.whatsapp.application;
 
 public interface WhatsAppService {
 

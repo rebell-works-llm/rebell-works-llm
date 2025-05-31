@@ -2,7 +2,7 @@ package com.rebellworksllm.backend.hubspot.application;
 
 import com.rebellworksllm.backend.hubspot.application.dto.StudentRequest;
 import com.rebellworksllm.backend.hubspot.application.exception.HubSpotStudentNotFoundException;
-import com.rebellworksllm.backend.hubspot.domain.StudentContact;
+import com.rebellworksllm.backend.hubspot.presentation.dto.StudentContact;
 import com.rebellworksllm.backend.hubspot.config.HubSpotCredentials;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
