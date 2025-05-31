@@ -17,6 +17,9 @@ public class HubSpotCredentials {
     @NotBlank
     private String contactProperties;
 
+    @NotBlank
+    private String clientSecret;
+
     public @NotBlank String getApiKey() {
         return apiKey;
     }
@@ -39,5 +42,13 @@ public class HubSpotCredentials {
 
     public void setContactProperties(String contactProperties) {
         this.contactProperties = contactProperties;
+    }
+
+    public @NotBlank String getClientSecret() {
+        return clientSecret;
+    }
+
+    public void setClientSecret(@NotBlank String clientSecret) {
+        this.clientSecret = clientSecret;
     }
 }

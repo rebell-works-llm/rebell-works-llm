@@ -21,13 +21,33 @@
         </encoder>
     </appender>
 
-    <!-- Async file appender for performance -->
+    <!-- Async file appender for matching logs -->
     <appender name="ASYNC_MATCHING_FILE" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="MATCHING_FILE"/>
         <queueSize>500</queueSize>
     </appender>
 
-    <!-- Dev profile: only matching logs at DEBUG, others at INFO -->
+    <!-- File appender for security logs -->
+    <appender name="SECURITY_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/security/requests.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/security/invalid-requests.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdc>true</includeMdc>
+        </encoder>
+    </appender>
+
+    <!-- Async file appender for security logs -->
+    <appender name="ASYNC_SECURITY_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="SECURITY_FILE"/>
+        <queueSize>500</queueSize>
+    </appender>
+
+    <!-- Dev profile: matching and security logging -->
     <springProfile name="dev">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
@@ -36,7 +56,11 @@
             <appender-ref ref="ASYNC_MATCHING_FILE"/>
             <appender-ref ref="CONSOLE"/>
         </logger>
-        <!-- Suppress verbose logs from Spring and Hibernate -->
+        <logger name="com.rebellworksllm.backend.security" level="DEBUG" additivity="false">
+            <appender-ref ref="ASYNC_SECURITY_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <!-- Suppress verbose logs -->
         <logger name="org.springframework" level="INFO"/>
         <logger name="org.hibernate" level="INFO"/>
     </springProfile>
@@ -45,9 +69,13 @@
     <springProfile name="prod">
         <root level="INFO">
             <appender-ref ref="ASYNC_MATCHING_FILE"/>
+            <appender-ref ref="ASYNC_SECURITY_FILE"/>
         </root>
         <logger name="com.rebellworksllm.backend.matching" level="INFO" additivity="false">
             <appender-ref ref="ASYNC_MATCHING_FILE"/>
+        </logger>
+        <logger name="com.rebellworksllm.backend.security" level="WARN" additivity="false">
+            <appender-ref ref="ASYNC_SECURITY_FILE"/>
         </logger>
     </springProfile>
 </configuration>

@@ -37,11 +37,11 @@ public class HubSpotStudentServiceImpl implements HubSpotStudentService {
         try {
             ResponseEntity<StudentRequest> response = restTemplate.getForEntity(url, StudentRequest.class);
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new HubSpotStudentNotFoundException("Could not fetch student with ID " + id);
+                throw new HubSpotStudentNotFoundException("Student not found with ID: " + id);
             }
             return mapToStudent(response.getBody());
         } catch (HttpClientErrorException e) {
-            throw new HubSpotStudentNotFoundException("HubSpot API error: " + e.getStatusCode());
+            throw new HubSpotStudentNotFoundException("Could not fetch student with ID: " + id);
         }
     }
 
