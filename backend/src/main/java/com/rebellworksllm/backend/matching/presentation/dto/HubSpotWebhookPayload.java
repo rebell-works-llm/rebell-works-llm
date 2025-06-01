@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.matching.presentation;
+package com.rebellworksllm.backend.matching.presentation.dto;
 
 import jakarta.validation.constraints.Positive;
 

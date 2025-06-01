@@ -3,3 +3,5 @@
 /.env
 /backend/src/main/resources/.env
 /http-client.env.json
+/logs/
+/backend/logs/
