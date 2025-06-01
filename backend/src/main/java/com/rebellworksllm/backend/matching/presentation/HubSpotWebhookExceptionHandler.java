@@ -1,5 +1,6 @@
 package com.rebellworksllm.backend.matching.presentation;
 
+import com.rebellworksllm.backend.hubspot.application.exception.HubSpotStudentNotFoundException;
 import com.rebellworksllm.backend.matching.application.exception.MatchingException;
 import com.rebellworksllm.backend.matching.presentation.dto.ErrorResponse;
 import org.slf4j.Logger;
@@ -13,6 +14,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class HubSpotWebhookExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(HubSpotWebhookExceptionHandler.class);
+
+    @ExceptionHandler(HubSpotStudentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleStudentNotFoundException(HubSpotStudentNotFoundException e) {
+        logger.warn("Student not found: {}", e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse("HubSpot contact not found: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
 
     @ExceptionHandler(MatchingException.class)
     public ResponseEntity<ErrorResponse> handleMatchingException(MatchingException e) {
