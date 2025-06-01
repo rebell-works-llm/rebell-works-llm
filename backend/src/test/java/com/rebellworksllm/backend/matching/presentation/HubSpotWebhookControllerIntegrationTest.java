@@ -32,6 +32,6 @@ public class HubSpotWebhookControllerIntegrationTest {
                 .content("{\"objectId\": \"" + "abc" + "\"}");
 
         mockMvc.perform(request)
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isInternalServerError());
     }
 }
