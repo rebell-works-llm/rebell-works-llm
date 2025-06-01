@@ -11,7 +11,4 @@ public record StudentContact(
         String expectedGraduationDate
 ) {
 
-    public String stringify() {
-        return study + " " + text + " " + studyLocation;
-    }
 }

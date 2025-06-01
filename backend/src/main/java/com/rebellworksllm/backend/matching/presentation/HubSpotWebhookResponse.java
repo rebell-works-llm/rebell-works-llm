@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.matching.presentation.dto;
+package com.rebellworksllm.backend.matching.presentation;
 
 public record HubSpotWebhookResponse(
 

@@ -29,9 +29,9 @@ public class CosinusSimilarityMatchingServiceTest {
         EmbeddingResult matchingVec = new EmbeddingResult(List.of(2.0, 2.0));
         Student student = createStudent(matchingVec);
         List<Vacancy> vacancies = List.of(
-                new Vacancy("1", "Software Intern Vacancy", "website", new EmbeddingResult(List.of(1.0, 2.0))),
-                new Vacancy("2", "Createve Intern Vacancy", "website", new EmbeddingResult(List.of(2.0, 3.0))),
-                new Vacancy("3", "Game Development Intern", "website", matchingVec)
+                new Vacancy("Software Intern Vacancy", "website", new EmbeddingResult(List.of(1.0, 2.0))),
+                new Vacancy("Createve Intern Vacancy", "website", new EmbeddingResult(List.of(2.0, 3.0))),
+                new Vacancy("Game Development Intern", "website", matchingVec)
         );
 
         // Act
