@@ -3,24 +3,19 @@ package com.rebellworksllm.backend.security;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
-import org.springframework.util.StreamUtils;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 public class CachedBodyHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
-    private static final int MAX_BODY_SIZE = 1024 * 1024; // 1MB
+    private static final int DEFAULT_BUFFER_SIZE = 8192;
 
     private final byte[] cachedBody;
 
-    public CachedBodyHttpServletRequestWrapper(HttpServletRequest request) throws IOException {
+    public CachedBodyHttpServletRequestWrapper(HttpServletRequest request, int maxSize) throws IOException {
         super(request);
-        // Cache the body with size limit
-        this.cachedBody = StreamUtils.copyToByteArray(request.getInputStream());
-        if (cachedBody.length > MAX_BODY_SIZE) {
-            throw new IOException("Request body exceeds maximum size of " + MAX_BODY_SIZE + " bytes");
-        }
+        this.cachedBody = readInputStream(request.getInputStream(), maxSize);
     }
 
     @Override
@@ -35,7 +30,28 @@ public class CachedBodyHttpServletRequestWrapper extends HttpServletRequestWrapp
         return new BufferedReader(inputStreamReader);
     }
 
-    public String getBody() {
-        return new String(cachedBody, StandardCharsets.UTF_8);
+    public byte[] getCachedBodyAsByteArray() {
+        return cachedBody;
+    }
+
+    private static byte[] readInputStream(InputStream inputStream, int maxSize) throws IOException {
+        if (inputStream == null) {
+            return new byte[0];
+        }
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+        int totalBytesRead = 0;
+        int bytesRead;
+
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            totalBytesRead += bytesRead;
+            if (totalBytesRead > maxSize) {
+                throw new IOException("Request body exceeds maximum allowed size of " + maxSize + " bytes");
+            }
+            outputStream.write(buffer, 0, bytesRead);
+        }
+
+        return outputStream.toByteArray();
     }
 }
