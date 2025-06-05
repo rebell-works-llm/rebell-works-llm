@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface MatchEngine {
 
-    List<StudentVacancyMatch> query(Student student, int amount);
+    List<StudentVacancyMatch> query(Student student, int totalMatches);
 }

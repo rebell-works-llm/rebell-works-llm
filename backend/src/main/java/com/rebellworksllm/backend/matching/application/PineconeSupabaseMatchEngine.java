@@ -24,10 +24,10 @@ public class PineconeSupabaseMatchEngine implements MatchEngine {
     }
 
     @Override
-    public List<StudentVacancyMatch> query(Student student, int amount) {
-        logger.info("Starting Pinecone match engine for student: {}, topK: {}", student.name(), amount);
+    public List<StudentVacancyMatch> query(Student student, int totalMatches) {
+        logger.info("Starting Pinecone match engine for student: {}, topK: {}", student.name(), totalMatches);
         try {
-            return pineconeService.queryTopMatches(student, amount);
+            return pineconeService.queryTopMatches(student, totalMatches);
         } catch (Exception e) {
             logger.error("Failed to query matches from Pinecone for student: {}, error: {}", student.name(), e.getMessage(), e);
             throw new MatchingException("Pinecone matching failed", e);

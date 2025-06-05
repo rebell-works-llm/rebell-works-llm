@@ -16,20 +16,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
 public class PineconeService {
 
     private static final Logger logger = LoggerFactory.getLogger(PineconeService.class);
+    private static final int topK = 100;
 
     private final RestTemplate restTemplate;
 
-    public PineconeService(@Qualifier("pineconeRestTemplate") RestTemplate restTemplate) {
+    private SupabaseService supabaseService;
+
+    public PineconeService(@Qualifier("pineconeRestTemplate") RestTemplate restTemplate, SupabaseService supabaseService) {
         this.restTemplate = restTemplate;
+        this.supabaseService = supabaseService;
     }
 
-    public List<StudentVacancyMatch> queryTopMatches(Student student, int topK) {
+    public List<StudentVacancyMatch> queryTopMatches(Student student, int totalMatches) {
         logger.debug("Querying Pinecone matches for student: {}, topK: {}", student.name(), topK);
         try {
             PineconeQueryRequest request = new PineconeQueryRequest(
@@ -59,7 +64,10 @@ public class PineconeService {
                                     match.metadata().link(),
                                     new EmbeddingResult(match.values())),
                             student,
-                            match.score()))
+                            supabaseService.priorityScore(match)))
+                    .sorted(Comparator.comparingDouble(StudentVacancyMatch::matchScore).reversed())
+                    .limit(totalMatches)
+                    .peek(match -> supabaseService.updateMatchCount(match.vacancy().id()))
                     .toList();
 
             logger.info("Returning {} matches for student: {}", result.size(), student.name());
