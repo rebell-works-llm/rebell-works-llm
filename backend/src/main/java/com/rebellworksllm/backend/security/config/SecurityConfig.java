@@ -1,6 +1,5 @@
 package com.rebellworksllm.backend.security.config;
 
-
 import com.rebellworksllm.backend.security.HubSpotSecurityFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,8 +9,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 public class SecurityConfig {
@@ -27,10 +24,11 @@ public class SecurityConfig {
         http.cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
+                        .requestMatchers("/api/v1/hubspot/contacts/created").permitAll()
+                        .anyRequest().authenticated()
                 )
-                .addFilterBefore(hubSpotSecurityFilter, UsernamePasswordAuthenticationFilter.class)
-                .sessionManagement(s -> s.sessionCreationPolicy(STATELESS));
+                .addFilterBefore(hubSpotSecurityFilter, UsernamePasswordAuthenticationFilter.class);
+//                .sessionManagement(s -> s.sessionCreationPolicy(STATELESS));
         return http.build();
     }
 }
