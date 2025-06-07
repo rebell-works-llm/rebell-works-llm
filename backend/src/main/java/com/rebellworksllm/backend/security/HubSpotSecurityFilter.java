@@ -51,10 +51,11 @@ public class HubSpotSecurityFilter extends OncePerRequestFilter {
         try {
             CachedBodyHttpServletRequestWrapper cachedRequest = new CachedBodyHttpServletRequestWrapper(request, maxRequestSize);
             logger.debug("Processing request: method={}, uri={}", cachedRequest.getMethod(), cachedRequest.getRequestURI());
-
             // Get headers
             String signature = cachedRequest.getHeader("X-HubSpot-Signature-v3");
             String timestamp = cachedRequest.getHeader("X-HubSpot-Request-Timestamp");
+            logger.debug("signature: {}, timestamp: {}", signature, timestamp);
+
             // Deny if missing
             if (signature == null || timestamp == null) {
                 logger.warn("Missing required headers for request: {}", cachedRequest.getRequestURI());
@@ -82,7 +83,9 @@ public class HubSpotSecurityFilter extends OncePerRequestFilter {
             String uri = "https://" + cachedRequest.getServerName() + cachedRequest.getRequestURI();
             String rawBody = new String(cachedRequest.getCachedBodyAsByteArray(), StandardCharsets.UTF_8);
             String body = minifyRawBody(rawBody);
+            logger.debug("body: {}", body);
             String source = method + uri + body + timestamp;
+            logger.debug("source: {}", source);
             String computedSignature = generateSignature(source, hubSpotCredentials.getClientSecret());
             if (!computedSignature.equals(signature)) {
                 logger.warn("Invalid signature for request: {}", cachedRequest.getRequestURI());
