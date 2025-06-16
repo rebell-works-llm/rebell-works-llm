@@ -16,8 +16,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 @SpringBootTest
@@ -37,7 +36,7 @@ public class SupabaseServiceIntegrationTest {
 
         double score = supabaseService.priorityScore(mockMatch);
 
-        assertTrue(score == 1.95); // more specific if you can predict it
+        assertEquals(1.95, score);
     }
 
     @Test
