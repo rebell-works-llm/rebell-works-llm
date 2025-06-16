@@ -38,7 +38,7 @@ public class HubSpotWebhookService {
         this.whatsAppService = whatsAppService;
     }
 
-    @Async
+    @Async("jobMatchingExecutor")
     public void processStudentMatch(long id) {
         logger.info("Starting matching progress for ID: {}", id);
         StudentContact studentContact = studentService.getStudentById(id);
