@@ -36,6 +36,10 @@ public class PineconeSupabaseMatchEngine implements MatchEngine {
             return initialMatches.stream()
                     .map(match -> {
                         SupabaseResponse supabaseVacancy = supabaseService.getVacancyById(match.vacancy().id());
+                        if (supabaseVacancy == null) {
+                            logger.warn("Vacancy not found in Supabase for ID: {}", match.vacancy().id());
+                            throw new MatchingException("Vacancy not found in Supabase for ID: " + match.vacancy().id());
+                        }
                         double newScore = ScoreService.priorityScore(match.matchScore(), supabaseVacancy.priority(), supabaseVacancy.matchCount());
 
                         return new StudentVacancyMatch(

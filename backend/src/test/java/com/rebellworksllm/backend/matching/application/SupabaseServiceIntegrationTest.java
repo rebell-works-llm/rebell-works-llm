@@ -26,17 +26,15 @@ public class SupabaseServiceIntegrationTest {
     private SupabaseService supabaseService;
 
     @Test
-    void testPriorityScore_withValidMatch_returnsExpectedScore() {
-        PineconeMatch mockMatch = new PineconeMatch(
-                "99f5f005-fae0-4f97-af79-f2e6955c7e86",
-                0.7,
-                List.of(0.1, 0.2, 0.3),
-                new PineconeMetadata("title", "link")
-        );
+    void testGetVacancyById_returnsCorrectResponse() {
+        String vacancyId = "99f5f005-fae0-4f97-af79-f2e6955c7e86";
 
-        double score = priorityScore(mockMatch.score(), 1.0, 1);
+        SupabaseResponse response = supabaseService.getVacancyById(vacancyId);
 
-        assertEquals(1.95, score);
+        assertNotNull(response);
+        assertEquals("id", response.id());
+        assertEquals(1.0, response.priority());
+        assertEquals(1, response.matchCount());
     }
 
     @Test
