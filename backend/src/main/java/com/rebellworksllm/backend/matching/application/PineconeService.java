@@ -67,7 +67,6 @@ public class PineconeService {
                             supabaseService.priorityScore(match)))
                     .sorted(Comparator.comparingDouble(StudentVacancyMatch::matchScore).reversed())
                     .limit(totalMatches)
-                    .peek(match -> supabaseService.updateMatchCount(match.vacancy().id()))
                     .toList();
 
             logger.info("Returning {} matches for student: {}", result.size(), student.name());
