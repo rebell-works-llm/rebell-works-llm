@@ -43,9 +43,7 @@ public class HubSpotSecurityFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        // Enkel filter toepassen op /api/v1/hubspot/**
-        return !path.startsWith("/api/v1/hubspot/");
+        return !request.getRequestURI().startsWith("/api/v1/hubspot/");
     }
 
     @Override

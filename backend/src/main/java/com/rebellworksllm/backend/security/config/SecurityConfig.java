@@ -21,15 +21,18 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(@NonNull HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults())
+        http
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/whatsapp/**").permitAll()
-                        .requestMatchers("/api/v1/hubspot/**").permitAll()
+                        .requestMatchers(
+                                "/api/v1/whatsapp/**",
+                                "/api/v1/hubspot/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(hubSpotSecurityFilter, UsernamePasswordAuthenticationFilter.class);
-//                .sessionManagement(s -> s.sessionCreationPolicy(STATELESS));
+
         return http.build();
     }
 }

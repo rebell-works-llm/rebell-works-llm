@@ -1,5 +1,6 @@
 package com.rebellworksllm.backend.whatsapp.presentation.controller;
 
+import com.rebellworksllm.backend.matching.presentation.HubSpotWebhookController;
 import com.rebellworksllm.backend.whatsapp.config.WhatsAppCredentials;
 import com.rebellworksllm.backend.whatsapp.presentation.dto.WhatsAppWebhookPayload;
 import org.slf4j.Logger;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/whatsapp")
 public class WhatsAppWebhookController {
 
-    //    private static final Logger logger = LoggerFactory.getLogger(HubSpotWebhookController.class);
+    private static final Logger logger = LoggerFactory.getLogger(HubSpotWebhookController.class);
     private static final Logger whatsappLogger = LoggerFactory.getLogger("WHATSAPP_LOGGER");
 
     private final WhatsAppCredentials whatsAppCredentials;
@@ -27,11 +28,11 @@ public class WhatsAppWebhookController {
             @RequestParam(name = "hub.challenge") String challenge,
             @RequestParam(name = "hub.verify_token") String token) {
 
+        logger.info("Incoming GET webhook params: {}, {}, {}", mode, challenge, token);
+
         if ("subscribe".equals(mode) && token.equals(whatsAppCredentials.getVerifyToken())) {
-            whatsappLogger.info("Webhook verified successfully.");
             return ResponseEntity.ok(challenge);
         } else {
-            whatsappLogger.warn("Webhook verification failed: token={} mode={}", token, mode);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Verification failed");
         }
     }
