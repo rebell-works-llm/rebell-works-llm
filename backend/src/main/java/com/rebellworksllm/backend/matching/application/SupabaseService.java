@@ -1,6 +1,5 @@
 package com.rebellworksllm.backend.matching.application;
 
-import com.rebellworksllm.backend.matching.application.dto.PineconeMatch;
 import com.rebellworksllm.backend.matching.application.dto.SupabaseResponse;
 import com.rebellworksllm.backend.matching.application.dto.SupabaseUpdateRequest;
 import com.rebellworksllm.backend.matching.application.exception.MatchingException;
@@ -26,16 +25,7 @@ public class SupabaseService {
         this.restTemplate = restTemplate;
     }
 
-    public double priorityScore(PineconeMatch match) {
-        SupabaseResponse supabaseResponse = getVacancyById(match.id());
-        double priorityScore = match.score() + supabaseResponse.priority();
-        if (supabaseResponse.matchCount() < 2) {
-            priorityScore += (0.5 - supabaseResponse.matchCount()*0.25);
-        }
-        return priorityScore;
-    }
-
-    private SupabaseResponse getVacancyById(String id) {
+    public SupabaseResponse getVacancyById(String id) {
         logger.debug("Fetching vacancy from Supabase with id: {}", id);
         try {
             URI uri = UriComponentsBuilder

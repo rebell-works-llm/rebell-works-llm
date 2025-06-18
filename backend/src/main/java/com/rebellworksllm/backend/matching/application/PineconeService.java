@@ -16,32 +16,27 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Comparator;
 import java.util.List;
 
 @Service
 public class PineconeService {
 
     private static final Logger logger = LoggerFactory.getLogger(PineconeService.class);
-    private static final int topK = 100;
 
     private final RestTemplate restTemplate;
 
-    private SupabaseService supabaseService;
-
-    public PineconeService(@Qualifier("pineconeRestTemplate") RestTemplate restTemplate, SupabaseService supabaseService) {
+    public PineconeService(@Qualifier("pineconeRestTemplate") RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
-        this.supabaseService = supabaseService;
     }
 
     public List<StudentVacancyMatch> queryTopMatches(Student student, int totalMatches) {
-        logger.debug("Querying Pinecone matches for student: {}, topK: {}", student.name(), topK);
+        logger.debug("Querying {} Pinecone matches for student: {}", student.name(), totalMatches);
+
         try {
             PineconeQueryRequest request = new PineconeQueryRequest(
-                    student.embeddingResult().embeddings(), topK, true, true);
+                    student.embeddingResult().embeddings(), totalMatches, true, true);
             HttpEntity<PineconeQueryRequest> entity = new HttpEntity<>(request);
 
-            logger.debug("Sending Pinecone query with topK: {}", topK);
             ResponseEntity<PineconeQueryResult> response = restTemplate.postForEntity("/query", entity, PineconeQueryResult.class);
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 logger.error("Pinecone API error: status={}", response.getStatusCode());
@@ -64,9 +59,7 @@ public class PineconeService {
                                     match.metadata().link(),
                                     new EmbeddingResult(match.values())),
                             student,
-                            supabaseService.priorityScore(match)))
-                    .sorted(Comparator.comparingDouble(StudentVacancyMatch::matchScore).reversed())
-                    .limit(totalMatches)
+                            match.score()))
                     .toList();
 
             logger.info("Returning {} matches for student: {}", result.size(), student.name());

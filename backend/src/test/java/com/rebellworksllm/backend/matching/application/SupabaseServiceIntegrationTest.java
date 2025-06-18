@@ -16,8 +16,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
+import static com.rebellworksllm.backend.matching.application.util.ScoreService.priorityScore;
 import static org.junit.jupiter.api.Assertions.*;
-
 
 @SpringBootTest
 public class SupabaseServiceIntegrationTest {
@@ -34,7 +34,7 @@ public class SupabaseServiceIntegrationTest {
                 new PineconeMetadata("title", "link")
         );
 
-        double score = supabaseService.priorityScore(mockMatch);
+        double score = priorityScore(mockMatch.score(), 1.0, 1);
 
         assertEquals(1.95, score);
     }
