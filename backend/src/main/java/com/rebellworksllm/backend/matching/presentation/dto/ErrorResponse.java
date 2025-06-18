@@ -1,7 +1,17 @@
 package com.rebellworksllm.backend.matching.presentation.dto;
 
-public record ErrorResponse(
+import java.time.Instant;
 
-        String errorMessage
+public record ErrorResponse(
+        String errorMessage,
+        String errorCode,
+        Instant timestamp
 ) {
+    public ErrorResponse(String errorMessage) {
+        this(errorMessage, "UNKNOWN", Instant.now());
+    }
+
+    public ErrorResponse(String errorMessage, String errorCode) {
+        this(errorMessage, errorCode, Instant.now());
+    }
 }

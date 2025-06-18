@@ -1,7 +1,7 @@
 package com.rebellworksllm.backend.matching.application;
 
 import com.rebellworksllm.backend.hubspot.domain.StudentContact;
-import com.rebellworksllm.backend.matching.application.exception.MatchingException;
+import com.rebellworksllm.backend.matching.application.exception.InsufficientMatchesException;
 import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
 import com.rebellworksllm.backend.hubspot.application.HubSpotStudentService;
 import com.rebellworksllm.backend.matching.domain.*;
@@ -10,6 +10,7 @@ import com.rebellworksllm.backend.whatsapp.domain.WhatsAppService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public class HubSpotWebhookService {
         this.whatsAppService = whatsAppService;
     }
 
+    @Async("jobMatchingExecutor")
     public void processStudentMatch(long id) {
         logger.info("Starting matching progress for ID: {}", id);
         StudentContact studentContact = studentService.getStudentById(id);
@@ -51,9 +53,9 @@ public class HubSpotWebhookService {
                 .toList();
         logger.info("Retrieved {} matches for student: {} with vacancy IDs: {}", matches.size(), studentContact.fullName(), vacancyIds);
 
-        if (matches.isEmpty()) {
-            logger.warn("No vacancy matches found for student: {}", studentContact.fullName());
-            throw new MatchingException("No vacancy matches found for student: " + studentContact.fullName());
+        if (matches.size() < FIRST_MATCH_LIMIT) {
+            logger.warn("Insufficient matches found for student: {}, required: {}, found: {}", studentContact.fullName(), FIRST_MATCH_LIMIT, matches.size());
+            throw new InsufficientMatchesException("Insufficient vacancy matches found for student: " + studentContact.fullName());
         }
 
         try {
@@ -70,7 +72,7 @@ public class HubSpotWebhookService {
             logger.info("WhatsApp message sent successfully to student: {}, phone: {}", studentContact.fullName(), maskPhone(studentContact.phoneNumber()));
         } catch (Exception e) {
             logger.error("Failed to send WhatsApp message for student: {}, error: {}", studentContact.fullName(), e.getMessage(), e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to send WhatsApp message: " + e.getMessage(), e);
         }
     }
 
