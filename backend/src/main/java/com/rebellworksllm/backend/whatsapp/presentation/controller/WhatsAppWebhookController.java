@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/whatsapp")
+@RequestMapping("/api/v1/whatsapp/webhook")
 public class WhatsAppWebhookController {
 
     private static final Logger logger = LoggerFactory.getLogger(HubSpotWebhookController.class);
@@ -22,7 +22,6 @@ public class WhatsAppWebhookController {
         this.whatsAppCredentials = whatsAppCredentials;
     }
 
-    @GetMapping("/webhook")
     public ResponseEntity<String> verifyWebhook(
             @RequestParam(name = "hub.mode") String mode,
             @RequestParam(name = "hub.challenge") String challenge,
@@ -37,7 +36,7 @@ public class WhatsAppWebhookController {
         }
     }
 
-    @PostMapping("/webhook")
+    @PostMapping
     public void receiveWhatsAppPayload(@RequestBody WhatsAppWebhookPayload payload) {
         if (payload == null) {
             whatsappLogger.warn("Received null payload for WhatsApp webhook");
