@@ -1,12 +1,12 @@
 package com.rebellworksllm.backend.whatsapp.presentation.controller;
 
+import com.rebellworksllm.backend.whatsapp.config.WhatsAppCredentials;
 import com.rebellworksllm.backend.whatsapp.presentation.dto.WhatsAppWebhookPayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/whatsapp")
@@ -14,6 +14,27 @@ public class WhatsAppWebhookController {
 
     //    private static final Logger logger = LoggerFactory.getLogger(HubSpotWebhookController.class);
     private static final Logger whatsappLogger = LoggerFactory.getLogger("WHATSAPP_LOGGER");
+
+    private final WhatsAppCredentials whatsAppCredentials;
+
+    public WhatsAppWebhookController(WhatsAppCredentials whatsAppCredentials) {
+        this.whatsAppCredentials = whatsAppCredentials;
+    }
+
+    @GetMapping("/webhook")
+    public ResponseEntity<String> verifyWebhook(
+            @RequestParam(name = "hub.mode") String mode,
+            @RequestParam(name = "hub.challenge") String challenge,
+            @RequestParam(name = "hub.verify_token") String token) {
+
+        if ("subscribe".equals(mode) && token.equals(whatsAppCredentials.getVerifyToken())) {
+            whatsappLogger.info("Webhook verified successfully.");
+            return ResponseEntity.ok(challenge);
+        } else {
+            whatsappLogger.warn("Webhook verification failed: token={} mode={}", token, mode);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Verification failed");
+        }
+    }
 
     @PostMapping("/webhook")
     public void receiveWhatsAppPayload(@RequestBody WhatsAppWebhookPayload payload) {
