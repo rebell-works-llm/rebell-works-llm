@@ -2,11 +2,10 @@ package com.rebellworksllm.backend.matching.application;
 
 import com.rebellworksllm.backend.matching.domain.Student;
 import com.rebellworksllm.backend.matching.domain.StudentVacancyMatch;
-import com.rebellworksllm.backend.matching.domain.Vacancy;
 
 import java.util.List;
 
-public interface StudentJobMatchingService {
+public interface StudentJobMatchEngine {
 
-    List<StudentVacancyMatch> findBestMatches(Student student, List<Vacancy> vacancies, int limit);
+    List<StudentVacancyMatch> query(Student student, int amount);
 }

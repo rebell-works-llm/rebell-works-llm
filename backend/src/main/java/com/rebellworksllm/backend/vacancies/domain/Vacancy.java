@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.matching.domain;
+package com.rebellworksllm.backend.vacancies.domain;
 
 public record Vacancy(
 

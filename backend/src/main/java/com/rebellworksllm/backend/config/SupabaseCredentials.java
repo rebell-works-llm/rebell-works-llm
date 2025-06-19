@@ -1,21 +1,18 @@
-package com.rebellworksllm.backend.matching.config;
+package com.rebellworksllm.backend.config;
 
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
-@ConfigurationProperties(prefix = "pinecone")
+@ConfigurationProperties(prefix = "supabase")
 @Validated
-public class PineconeCredentials {
+public class SupabaseCredentials {
 
     @NotBlank
     private String apiKey;
 
     @NotBlank
     private String baseUrl;
-
-    @NotBlank
-    private String indexName;
 
     public @NotBlank String getApiKey() {
         return apiKey;
@@ -31,13 +28,5 @@ public class PineconeCredentials {
 
     public void setBaseUrl(@NotBlank String baseUrl) {
         this.baseUrl = baseUrl;
-    }
-
-    public @NotBlank String getIndexName() {
-        return indexName;
-    }
-
-    public void setIndexName(@NotBlank String indexName) {
-        this.indexName = indexName;
     }
 }
