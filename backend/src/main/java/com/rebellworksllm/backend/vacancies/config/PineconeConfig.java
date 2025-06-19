@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.matching.config;
+package com.rebellworksllm.backend.vacancies.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,14 +9,13 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import java.util.List;
 
 @Configuration
-public class SupabaseConfig {
+public class PineconeConfig {
 
-    @Bean("supabaseRestTemplate")
-    public RestTemplate pineconeRestTemplate(SupabaseCredentials credentials) {
+    @Bean("pineconeRestTemplate")
+    public RestTemplate pineconeRestTemplate(PineconeCredentials credentials) {
         RestTemplate template = new RestTemplate();
         ClientHttpRequestInterceptor authInterceptor = (request, body, execution) -> {
-            request.getHeaders().add("apikey", credentials.getApiKey());
-            request.getHeaders().add("Authorization", "Bearer " + credentials.getApiKey());
+            request.getHeaders().add("Api-Key", credentials.getApiKey());
             request.getHeaders().add("Content-Type", "application/json");
             return execution.execute(request, body);
         };

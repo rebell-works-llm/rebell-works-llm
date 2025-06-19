@@ -1,13 +1,11 @@
-package com.rebellworksllm.backend.matching.application;
+package com.rebellworksllm.backend.vacancies.data;
 
-import com.rebellworksllm.backend.matching.application.dto.PineconeMatch;
-import com.rebellworksllm.backend.matching.application.dto.PineconeQueryRequest;
-import com.rebellworksllm.backend.matching.application.dto.PineconeQueryResult;
 import com.rebellworksllm.backend.matching.application.exception.MatchingException;
-import com.rebellworksllm.backend.matching.domain.Student;
-import com.rebellworksllm.backend.matching.domain.StudentVacancyMatch;
-import com.rebellworksllm.backend.matching.domain.Vacancy;
-import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
+import com.rebellworksllm.backend.vacancies.application.dto.PineconeMatchResponse;
+import com.rebellworksllm.backend.vacancies.application.dto.PineconeQueryRequest;
+import com.rebellworksllm.backend.vacancies.application.dto.PineconeQueryResult;
+import com.rebellworksllm.backend.vacancies.domain.ScoredVacancy;
+import com.rebellworksllm.backend.vacancies.domain.Vacancy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,11 +27,9 @@ public class PineconeService {
         this.restTemplate = restTemplate;
     }
 
-    public List<StudentVacancyMatch> queryTopMatches(Student student, int topK) {
-        logger.debug("Querying Pinecone matches for student: {}, topK: {}", student.name(), topK);
+    public List<ScoredVacancy> queryTopMatches(List<Double> vector, int topK) {
         try {
-            PineconeQueryRequest request = new PineconeQueryRequest(
-                    student.embeddingResult().embeddings(), topK, true, true);
+            PineconeQueryRequest request = new PineconeQueryRequest(vector, topK, true, true);
             HttpEntity<PineconeQueryRequest> entity = new HttpEntity<>(request);
 
             logger.debug("Sending Pinecone query with topK: {}", topK);
@@ -43,34 +39,33 @@ public class PineconeService {
                 throw new MatchingException("Pinecone API error: " + response.getStatusCode());
             }
 
-            List<PineconeMatch> matches = response.getBody().matches();
+            List<PineconeMatchResponse> matches = response.getBody().matches();
             if (matches == null || matches.isEmpty()) {
-                logger.warn("No matches found for student: {}", student.name());
+                logger.warn("No matches found");
                 throw new MatchingException("No matches found for student in Pinecone query");
             }
             logger.debug("Retrieved {} matches from Pinecone", matches.size());
 
 
-            List<StudentVacancyMatch> result = matches.stream()
+            List<ScoredVacancy> result = matches.stream()
                     .filter(this::validateMatch)
-                    .map(match -> new StudentVacancyMatch(
+                    .map(match -> new ScoredVacancy(
                             new Vacancy(match.id(),
                                     match.metadata().title(),
-                                    match.metadata().link(),
-                                    new EmbeddingResult(match.values())),
-                            student,
+                                    match.metadata().link()
+                            ),
                             match.score()))
                     .toList();
 
-            logger.info("Returning {} matches for student: {}", result.size(), student.name());
+            logger.info("Returning {} matches", result.size());
             return result;
         } catch (Exception e) {
-            logger.error("Pinecone query failed for student: {}, error: {}", student.name(), e.getMessage(), e);
+            logger.error("Pinecone query failed for student: {}", e.getMessage(), e);
             throw new MatchingException("Pinecone query failed: " + e.getMessage(), e);
         }
     }
 
-    private boolean validateMatch(PineconeMatch match) {
+    private boolean validateMatch(PineconeMatchResponse match) {
         return (match.metadata() != null) &&
                 (match.metadata().title()) != null &&
                 (match.metadata().link()) != null;

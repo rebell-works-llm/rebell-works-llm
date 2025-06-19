@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.matching.application.dto;
+package com.rebellworksllm.backend.vacancies.application.dto;
 
 import java.util.List;
 
