@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.email;
+package com.rebellworksllm.backend.email.application;
 
 public interface EmailService {
 
