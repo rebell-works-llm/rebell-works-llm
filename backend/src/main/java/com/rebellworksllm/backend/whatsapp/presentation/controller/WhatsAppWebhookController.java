@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Objects;
 
 @RestController
@@ -40,7 +41,10 @@ public class WhatsAppWebhookController {
     }
 
     @PostMapping
-    public ResponseEntity<WhatsAppWebhookPayload> receive(@Valid @RequestBody WhatsAppWebhookPayload payload) {
+    public ResponseEntity<WhatsAppWebhookPayload> receive(@RequestHeader Map<String, String> headers,  @Valid @RequestBody WhatsAppWebhookPayload payload) {
+        headers.forEach((k,v) -> logger.info("Header: {} = {}", k, v));
+        logger.info("Webhook payload: {}", payload);
+
         logger.info("Received webhook payload for field: {}", payload.field());
         if (Objects.equals(payload.field(), "messages")) {
             logger.info("Processing messages subscription payload");
