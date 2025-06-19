@@ -6,6 +6,7 @@ import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
@@ -29,7 +30,7 @@ public class HubSpotSecurityFilterTest {
     void setUp() {
         HubSpotCredentials hubSpotCredentials = new HubSpotCredentials();
         hubSpotCredentials.setClientSecret(TEST_CLIENT_SECRET);
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().build();
         filter = new HubSpotSecurityFilter(objectMapper, hubSpotCredentials, 300_000, 1024 * 1024);
 
         request = new MockHttpServletRequest("POST", TEST_CONTACT_CREATION_URI);
