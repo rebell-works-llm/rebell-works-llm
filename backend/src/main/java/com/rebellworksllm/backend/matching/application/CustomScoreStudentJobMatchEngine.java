@@ -31,7 +31,12 @@ public class CustomScoreStudentJobMatchEngine implements StudentJobMatchEngine {
                             new Vacancy(
                                     scoredVacancy.vacancy().id(),
                                     scoredVacancy.vacancy().title(),
-                                    scoredVacancy.vacancy().website()
+                                    scoredVacancy.vacancy().description(),
+                                    scoredVacancy.vacancy().salary(),
+                                    scoredVacancy.vacancy().workingHours(),
+                                    scoredVacancy.vacancy().function(),
+                                    scoredVacancy.vacancy().embeddingResult()
+
                             ),
                             student,
                             scoredVacancy.similarityScore()

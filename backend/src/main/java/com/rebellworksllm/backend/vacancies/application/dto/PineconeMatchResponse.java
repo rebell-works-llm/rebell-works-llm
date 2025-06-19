@@ -13,7 +13,13 @@ public record PineconeMatchResponse(
     public record PineconeMetadata(
 
             String title,
-            String link
+            String description,
+            String working_hours,
+            String salary,
+            String position
+
+
+
     ) {
     }
 }

@@ -1,5 +1,6 @@
 package com.rebellworksllm.backend.matching.application;
 
+import com.rebellworksllm.backend.email.application.EmailService;
 import com.rebellworksllm.backend.hubspot.domain.StudentContact;
 import com.rebellworksllm.backend.matching.application.exception.InsufficientMatchesException;
 import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
@@ -25,16 +26,22 @@ public class HubSpotWebhookService {
     private final StudentJobMatchEngine matchEngine;
     private final HubSpotStudentService studentService;
     private final OpenAIEmbeddingService embeddingService;
+    private final EmailService emailService;
     private final WhatsAppService whatsAppService;
+    private final VacancyNotificationAdapter vacancyNotificationAdapter;
 
     public HubSpotWebhookService(StudentJobMatchEngine matchEngine,
                                  HubSpotStudentService studentService,
                                  OpenAIEmbeddingService embeddingService,
-                                 WhatsAppService whatsAppService) {
+                                 WhatsAppService whatsAppService,
+                                 EmailService emailService,
+                                 VacancyNotificationAdapter vacancyNotificationAdapter) {
         this.matchEngine = matchEngine;
         this.studentService = studentService;
         this.embeddingService = embeddingService;
         this.whatsAppService = whatsAppService;
+        this.vacancyNotificationAdapter = vacancyNotificationAdapter;
+        this.emailService = emailService;
     }
 
     @Async("jobMatchingExecutor")
@@ -55,15 +62,17 @@ public class HubSpotWebhookService {
 
         try {
             logger.info("Sending WhatsApp message to name: {}, phone: {}", studentContact.fullName(), maskPhone(studentContact.phoneNumber()));
-            whatsAppService.sendWithVacancyTemplate(
+            vacancyNotificationAdapter.notifyCandidate(
                     studentContact.phoneNumber(),
                     studentContact.fullName(),
-                    matches.getFirst().vacancy().website(),
-                    matches.get(0).vacancy().website(),
-                    matches.get(1).vacancy().website(),
-                    matches.get(2).vacancy().website(),
-                    matches.get(3).vacancy().website()
+                    matches.get(0).vacancy(),
+                    matches.get(1).vacancy()
             );
+
+            sendAdminNotificationEmail(studentContact);
+
+
+
             logger.info("WhatsApp message sent successfully to student: {}, phone: {}", studentContact.fullName(), maskPhone(studentContact.phoneNumber()));
         } catch (Exception e) {
             logger.error("Failed to send WhatsApp message for student: {}, error: {}", studentContact.fullName(), e.getMessage(), e);
@@ -91,5 +100,24 @@ public class HubSpotWebhookService {
                 studentContact.studyLocation(),
                 studentEmbeddingResult
         );
+    }
+
+    private void sendAdminNotificationEmail(StudentContact studentContact) {
+        String emailBody = String.format(
+                "Nieuwe student aangemeld:\n\nNaam: %s\nE-mail: %s\nTelefoonnummer: %s\nStudie: %s\nLocatie: %s",
+                studentContact.fullName(),
+                studentContact.email(),
+                maskPhone(studentContact.phoneNumber()),
+                studentContact.study(),
+                studentContact.studyLocation()
+        );
+
+        emailService.send(
+                "kevinkoot887@gmail.com",
+                "Nieuwe student aangemeld",
+                emailBody
+        );
+
+        logger.info("Confirmation email sent to kevinkoot887@gmail.com for student: {}", studentContact.fullName());
     }
 }
