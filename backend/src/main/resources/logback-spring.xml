@@ -21,7 +21,6 @@
         </encoder>
     </appender>
 
-    <!-- Async file appender for matching logs -->
     <appender name="ASYNC_MATCHING_FILE" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="MATCHING_FILE"/>
         <queueSize>500</queueSize>
@@ -41,41 +40,74 @@
         </encoder>
     </appender>
 
-    <!-- Async file appender for security logs -->
     <appender name="ASYNC_SECURITY_FILE" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="SECURITY_FILE"/>
         <queueSize>500</queueSize>
     </appender>
 
-    <!-- Dev profile: matching and security logging -->
+    <!-- File appender for WhatsApp logs -->
+    <appender name="WHATSAPP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/whatsapp/whatsapp.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/whatsapp/whatsapp.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_WHATSAPP_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="WHATSAPP_FILE"/>
+        <queueSize>500</queueSize>
+    </appender>
+
+    <!-- Development Profile -->
     <springProfile name="dev">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
         </root>
+
         <logger name="com.rebellworksllm.backend.matching" level="DEBUG" additivity="false">
             <appender-ref ref="ASYNC_MATCHING_FILE"/>
             <appender-ref ref="CONSOLE"/>
         </logger>
+
         <logger name="com.rebellworksllm.backend.security" level="DEBUG" additivity="false">
             <appender-ref ref="ASYNC_SECURITY_FILE"/>
             <appender-ref ref="CONSOLE"/>
         </logger>
-        <!-- Suppress verbose logs -->
+
+        <logger name="WHATSAPP_LOGGER" level="DEBUG" additivity="false">
+            <appender-ref ref="ASYNC_WHATSAPP_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
         <logger name="org.springframework" level="INFO"/>
         <logger name="org.hibernate" level="INFO"/>
     </springProfile>
 
-    <!-- Prod profile: minimal logging -->
+    <!-- Production Profile -->
     <springProfile name="prod">
         <root level="INFO">
             <appender-ref ref="ASYNC_MATCHING_FILE"/>
             <appender-ref ref="ASYNC_SECURITY_FILE"/>
+            <appender-ref ref="ASYNC_WHATSAPP_FILE"/>
         </root>
+
         <logger name="com.rebellworksllm.backend.matching" level="INFO" additivity="false">
             <appender-ref ref="ASYNC_MATCHING_FILE"/>
         </logger>
+
         <logger name="com.rebellworksllm.backend.security" level="WARN" additivity="false">
             <appender-ref ref="ASYNC_SECURITY_FILE"/>
         </logger>
+
+        <logger name="WHATSAPP_LOGGER" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_WHATSAPP_FILE"/>
+        </logger>
     </springProfile>
+
 </configuration>
