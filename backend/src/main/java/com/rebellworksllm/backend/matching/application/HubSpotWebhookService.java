@@ -9,7 +9,6 @@ import com.rebellworksllm.backend.openai.domain.OpenAIEmbeddingService;
 import com.rebellworksllm.backend.whatsapp.domain.WhatsAppService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -23,12 +22,12 @@ public class HubSpotWebhookService {
     private static final Logger logger = LoggerFactory.getLogger(HubSpotWebhookService.class);
     private static final int FIRST_MATCH_LIMIT = 5;
 
-    private final MatchEngine matchEngine;
+    private final StudentJobMatchEngine matchEngine;
     private final HubSpotStudentService studentService;
     private final OpenAIEmbeddingService embeddingService;
     private final WhatsAppService whatsAppService;
 
-    public HubSpotWebhookService(@Qualifier("pineconeSupabaseMatchEngine") MatchEngine matchEngine,
+    public HubSpotWebhookService(StudentJobMatchEngine matchEngine,
                                  HubSpotStudentService studentService,
                                  OpenAIEmbeddingService embeddingService,
                                  WhatsAppService whatsAppService) {
@@ -46,17 +45,13 @@ public class HubSpotWebhookService {
         Student student = toStudent(studentContact);
         List<StudentVacancyMatch> matches = matchEngine.query(student, FIRST_MATCH_LIMIT);
 
-        // Include job details in log
-        List<String> vacancyIds = matches.stream()
-                .filter(match -> !match.vacancy().id().isEmpty())
-                .map(match -> match.vacancy().id())
-                .toList();
-        logger.info("Retrieved {} matches for student: {} with vacancy IDs: {}", matches.size(), studentContact.fullName(), vacancyIds);
-
         if (matches.size() < FIRST_MATCH_LIMIT) {
             logger.warn("Insufficient matches found for student: {}, required: {}, found: {}", studentContact.fullName(), FIRST_MATCH_LIMIT, matches.size());
             throw new InsufficientMatchesException("Insufficient vacancy matches found for student: " + studentContact.fullName());
         }
+
+        List<String> vacancyIds = getVacancyIds(matches);
+        logger.info("Retrieved {} matches for student: {} with vacancy IDs: {}", matches.size(), studentContact.fullName(), vacancyIds);
 
         try {
             logger.info("Sending WhatsApp message to name: {}, phone: {}", studentContact.fullName(), maskPhone(studentContact.phoneNumber()));
@@ -74,6 +69,13 @@ public class HubSpotWebhookService {
             logger.error("Failed to send WhatsApp message for student: {}, error: {}", studentContact.fullName(), e.getMessage(), e);
             throw new RuntimeException("Failed to send WhatsApp message: " + e.getMessage(), e);
         }
+    }
+
+    private List<String> getVacancyIds(List<StudentVacancyMatch> matches) {
+        return matches.stream()
+                .filter(match -> !match.vacancy().id().isEmpty())
+                .map(match -> match.vacancy().id())
+                .toList();
     }
 
     private Student toStudent(StudentContact studentContact) {
