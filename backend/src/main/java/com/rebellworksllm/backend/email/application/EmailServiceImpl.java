@@ -15,7 +15,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendFallbackEmail(String to, String subject, String body) {
+    public void send(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject(subject);
