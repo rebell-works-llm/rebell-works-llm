@@ -1,5 +1,6 @@
 package com.rebellworksllm.backend.whatsapp.presentation.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rebellworksllm.backend.whatsapp.application.WhatsAppWebhookService;
 import com.rebellworksllm.backend.whatsapp.config.WhatsAppCredentials;
 import com.rebellworksllm.backend.whatsapp.presentation.dto.WhatsAppWebhookPayload;
@@ -7,6 +8,7 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,18 +43,20 @@ public class WhatsAppWebhookController {
     }
 
     @PostMapping
-    public ResponseEntity<WhatsAppWebhookPayload> receive(@RequestHeader Map<String, String> headers,  @Valid @RequestBody WhatsAppWebhookPayload payload) {
-        headers.forEach((k,v) -> logger.info("Header: {} = {}", k, v));
-        logger.info("Webhook payload: {}", payload);
+    public ResponseEntity<WhatsAppWebhookPayload> receive(@RequestBody(required = false) String rawBody) {
+        logger.info("Received raw payload: {}", rawBody);
 
-        logger.info("Received webhook payload for field: {}", payload.field());
-        if (Objects.equals(payload.field(), "messages")) {
-            logger.info("Processing messages subscription payload");
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            WhatsAppWebhookPayload payload = mapper.readValue(rawBody, WhatsAppWebhookPayload.class);
+
+            // now use the valid payload
             whatsAppWebhookService.processWebhook(payload);
-        } else {
-            logger.warn("Stopped processing subscription outside messages");
-        }
+            return ResponseEntity.ok().build();
 
-        return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            logger.error("Failed to parse payload", e);
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
