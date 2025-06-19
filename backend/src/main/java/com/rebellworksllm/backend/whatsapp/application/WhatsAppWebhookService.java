@@ -23,17 +23,20 @@ public class WhatsAppWebhookService {
     }
 
     public void processWebhook(WhatsAppWebhookPayload payload) {
-        Map<String, String> phoneMap = payload.value().contacts().stream()
+        Map<String, String> waIdToNameMap = payload.value().contacts().stream()
                 .collect(Collectors.toMap(Contact::wa_id, c -> c.profile().name()));
-
-        logger.info("Processing payload with {} contacts", phoneMap.size());
 
         payload.value().messages().stream()
                 .map(msg -> {
-                    String phone = phoneMap.getOrDefault(msg.from(), msg.from());
+                    String waId = msg.from();
+                    String name = waIdToNameMap.getOrDefault(waId, "unknown");
                     String text = msg.text().body();
-                    return new ContactResponseMessage(phone, text);
+
+                    logger.info("Processing message from {}: {}", name, text);
+
+                    return new ContactResponseMessage("+" + waId, text);
                 })
                 .forEach(studentInterestHandlerService::handleReply);
     }
+
 }

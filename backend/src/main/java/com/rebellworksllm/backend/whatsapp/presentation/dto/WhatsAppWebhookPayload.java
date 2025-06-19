@@ -1,8 +1,10 @@
 package com.rebellworksllm.backend.whatsapp.presentation.dto;
 
+import jakarta.validation.constraints.NotNull;
+
 public record WhatsAppWebhookPayload(
-        String field,
-        Value value
+        @NotNull String field,
+        @NotNull Value value
 ) {
 
 }
