@@ -61,10 +61,15 @@ public class HubSpotWebhookService {
         List<String> vacancyIds = getVacancyIds(matches);
         logger.info("Retrieved {} matches for student: {} with vacancy IDs: {}", matches.size(), studentContact.fullName(), vacancyIds);
 
+
+
         try {
+
+            String formattedPhone = reFormatPhoneNumber(studentContact.phoneNumber());
+
             logger.info("Sending WhatsApp message to name: {}, phone: {}", studentContact.fullName(), maskPhone(studentContact.phoneNumber()));
             vacancyNotificationAdapter.notifyCandidate(
-                    studentContact.phoneNumber(),
+                    formattedPhone,
                     studentContact.fullName(),
                     matches.get(0).vacancy(),
                     matches.get(1).vacancy()
@@ -132,4 +137,20 @@ public class HubSpotWebhookService {
 
         logger.info("Confirmation email sent to {} for student: {}", maskEmail(mailTo), studentContact.fullName());
     }
+
+    private String reFormatPhoneNumber(String phone) {
+
+        String cleaned = phone.replaceAll("[\\s\\-()]", "");
+
+
+        if (cleaned.startsWith("+31")) {
+            cleaned = cleaned.substring(3);
+        } else if (cleaned.startsWith("0")) {
+            cleaned = cleaned.substring(1);
+        }
+
+        return "31" + cleaned;
+    }
+
+
 }
