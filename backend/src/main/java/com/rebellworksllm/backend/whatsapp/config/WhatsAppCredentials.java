@@ -17,6 +17,9 @@ public class WhatsAppCredentials {
     @NotBlank
     private String phoneNumberId;
 
+    @NotBlank
+    private String verifyToken;
+
     public String getApiKey() {
         return apiKey;
     }
@@ -39,5 +42,13 @@ public class WhatsAppCredentials {
 
     public void setPhoneNumberId(@NotBlank String phoneNumberId) {
         this.phoneNumberId = phoneNumberId;
+    }
+
+    public @NotBlank String getVerifyToken() {
+        return verifyToken;
+    }
+
+    public void setVerifyToken(@NotBlank String verifyToken) {
+        this.verifyToken = verifyToken;
     }
 }

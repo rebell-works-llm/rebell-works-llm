@@ -1,7 +1,8 @@
 package com.rebellworksllm.backend.hubspot.application;
 
-import com.rebellworksllm.backend.hubspot.domain.StudentContact;
+import com.rebellworksllm.backend.hubspot.application.dto.StudentContact;
 import com.rebellworksllm.backend.hubspot.config.HubSpotCredentials;
+import com.rebellworksllm.backend.hubspot.data.HubSpotStudentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -16,7 +17,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 public class HubSpotStudentContactServiceImplTest {
 
-    private HubSpotStudentService studentService;
+    private HubSpotStudentProvider studentProvider;
     private MockRestServiceServer mockServer;
 
     @BeforeEach
@@ -32,7 +33,8 @@ public class HubSpotStudentContactServiceImplTest {
         credentials.setApiBaseUrl("https://api.hubapi.com");
         credentials.setContactProperties("firstname,email,studie,phone,study,op_zoek_naar_,location,geboortedatum");
 
-        studentService = new HubSpotStudentServiceImpl(restTemplate, credentials);
+        HubSpotStudentService studentService = new HubSpotStudentService(restTemplate, credentials);
+        studentProvider = new HubSpotStudentProviderService(studentService);
         mockServer = MockRestServiceServer.createServer(restTemplate);
     }
 
@@ -59,7 +61,7 @@ public class HubSpotStudentContactServiceImplTest {
                 .andExpect(header("Authorization", "Bearer test-token"))
                 .andRespond(withSuccess(jsonResponse, MediaType.APPLICATION_JSON));
 
-        StudentContact studentContact = studentService.getStudentById(1L);
+        StudentContact studentContact = studentProvider.getStudentById(1L);
 
         assertEquals("John Doe", studentContact.fullName());
         assertEquals("john.doe@example.com", studentContact.email());

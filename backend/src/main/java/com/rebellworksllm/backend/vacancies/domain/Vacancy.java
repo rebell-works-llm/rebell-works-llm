@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.matching.domain;
+package com.rebellworksllm.backend.vacancies.domain;
 
 import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
 
