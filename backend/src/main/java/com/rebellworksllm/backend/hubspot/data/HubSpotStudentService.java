@@ -91,6 +91,7 @@ public class HubSpotStudentService {
         }
         Map<String, String> props = request.properties();
         return new StudentContact(
+                request.id(),
                 props.getOrDefault("firstname", ""),
                 props.getOrDefault("email", ""),
                 props.getOrDefault("phone", ""),
