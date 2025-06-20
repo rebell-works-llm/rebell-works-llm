@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.matching.application.dto;
+package com.rebellworksllm.backend.vacancies.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

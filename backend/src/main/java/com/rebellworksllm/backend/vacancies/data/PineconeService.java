@@ -1,14 +1,9 @@
 package com.rebellworksllm.backend.vacancies.data;
 
 import com.rebellworksllm.backend.matching.application.exception.MatchingException;
-import com.rebellworksllm.backend.matching.domain.Student;
-import com.rebellworksllm.backend.matching.domain.StudentVacancyMatch;
 import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
-import com.rebellworksllm.backend.vacancies.application.dto.PineconeMatchResponse;
-import com.rebellworksllm.backend.vacancies.application.dto.PineconeQueryRequest;
-import com.rebellworksllm.backend.vacancies.application.dto.PineconeQueryResult;
-import com.rebellworksllm.backend.vacancies.domain.ScoredVacancy;
-import com.rebellworksllm.backend.vacancies.domain.Vacancy;
+import com.rebellworksllm.backend.vacancies.application.dto.MatchedVacancy;
+import com.rebellworksllm.backend.vacancies.application.dto.VacancyResponseDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,7 +25,7 @@ public class PineconeService {
         this.restTemplate = restTemplate;
     }
 
-    public List<ScoredVacancy> queryTopMatches(List<Double> vector, int topK) {
+    public List<MatchedVacancy> queryTopMatches(List<Double> vector, int topK) {
         try {
             PineconeQueryRequest request = new PineconeQueryRequest(vector, topK, true, true);
             HttpEntity<PineconeQueryRequest> entity = new HttpEntity<>(request);
@@ -50,16 +45,18 @@ public class PineconeService {
             logger.debug("Retrieved {} matches from Pinecone", matches.size());
 
 
-            List<ScoredVacancy> result = matches.stream()
+            List<MatchedVacancy> result = matches.stream()
                     .filter(this::validateMatch)
-                    .map(match -> new ScoredVacancy(
-                            new Vacancy(match.id(),
+                    .map(match -> new MatchedVacancy(
+                            new VacancyResponseDto(match.id(),
                                     match.metadata().title(),
                                     match.metadata().description(),
                                     match.metadata().working_hours(),
                                     match.metadata().salary(),
                                     match.metadata().position(),
-                                    new EmbeddingResult(match.values())),
+                                    0,
+                                    0),
+                            new EmbeddingResult(match.values()),
                             match.score()))
                     .toList();
 

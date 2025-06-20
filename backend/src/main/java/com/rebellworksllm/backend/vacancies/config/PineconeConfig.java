@@ -13,10 +13,16 @@ public class PineconeConfig {
 
     @Bean("pineconeRestTemplate")
     public RestTemplate pineconeRestTemplate(PineconeCredentials credentials) {
+        System.out.println("base url pinecone: " + credentials.getBaseUrl());
+
         RestTemplate template = new RestTemplate();
         ClientHttpRequestInterceptor authInterceptor = (request, body, execution) -> {
             request.getHeaders().add("Api-Key", credentials.getApiKey());
             request.getHeaders().add("Content-Type", "application/json");
+
+            System.out.println("Pinecone Request URI: " + request.getURI());
+            System.out.println("Pinecone headers: " + request.getHeaders());
+
             return execution.execute(request, body);
         };
         template.setInterceptors(List.of(authInterceptor));

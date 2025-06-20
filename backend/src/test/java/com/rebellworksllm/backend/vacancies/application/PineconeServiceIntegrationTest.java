@@ -2,9 +2,9 @@ package com.rebellworksllm.backend.vacancies.application;
 
 import com.rebellworksllm.backend.matching.domain.Student;
 import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
+import com.rebellworksllm.backend.vacancies.application.dto.MatchedVacancy;
+import com.rebellworksllm.backend.vacancies.application.dto.VacancyResponseDto;
 import com.rebellworksllm.backend.vacancies.data.PineconeService;
-import com.rebellworksllm.backend.vacancies.domain.ScoredVacancy;
-import com.rebellworksllm.backend.vacancies.domain.Vacancy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,12 +39,12 @@ public class PineconeServiceIntegrationTest {
     @Test
     void testQueryTopMatches() {
 
-        List<ScoredVacancy> matches = pineconeService.queryTopMatches(student.embeddingResult().embeddings(), 1);
-        Vacancy vacancy = matches.getFirst().vacancy();
+        List<MatchedVacancy> matches = pineconeService.queryTopMatches(student.embeddingResult().embeddings(), 1);
+        VacancyResponseDto vacancyResult = matches.getFirst().vacancyResponse();
 
         assertEquals(1, matches.size());
-        assertFalse(vacancy.id().isEmpty());
-        assertFalse(vacancy.title().isEmpty());
-        assertFalse(vacancy.description().isEmpty());
+        assertFalse(vacancyResult.id().isEmpty());
+        assertFalse(vacancyResult.title().isEmpty());
+        assertFalse(vacancyResult.description().isEmpty());
     }
 }

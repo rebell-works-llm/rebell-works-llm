@@ -1,8 +1,7 @@
 package com.rebellworksllm.backend.matching.application;
 
-import com.rebellworksllm.backend.matching.application.dto.PineconeMatch;
-import com.rebellworksllm.backend.matching.application.dto.PineconeMetadata;
-import com.rebellworksllm.backend.matching.application.dto.SupabaseResponse;
+import com.rebellworksllm.backend.vacancies.data.SupabaseResponse;
+import com.rebellworksllm.backend.vacancies.data.SupabaseService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +13,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
-
-import static com.rebellworksllm.backend.matching.application.util.ScoreService.priorityScore;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest

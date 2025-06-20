@@ -1,7 +1,5 @@
-package com.rebellworksllm.backend.matching.application;
+package com.rebellworksllm.backend.vacancies.data;
 
-import com.rebellworksllm.backend.matching.application.dto.SupabaseResponse;
-import com.rebellworksllm.backend.matching.application.dto.SupabaseUpdateRequest;
 import com.rebellworksllm.backend.matching.application.exception.MatchingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,14 +26,8 @@ public class SupabaseService {
     public SupabaseResponse getVacancyById(String id) {
         logger.debug("Fetching vacancy from Supabase with id: {}", id);
         try {
-            URI uri = UriComponentsBuilder
-                    .fromPath("/rest/v1/vacancies")
-                    .queryParam("id", "eq." + id)
-                    .queryParam("select", "id,priority,matchCount")
-                    .build()
-                    .toUri();
-
-            ResponseEntity<SupabaseResponse[]> response = restTemplate.getForEntity(uri, SupabaseResponse[].class);
+            ResponseEntity<SupabaseResponse[]> response =
+                    restTemplate.getForEntity("/rest/v1/vacancies?id=eq." + id, SupabaseResponse[].class);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 logger.error("Supabase API error for GET: status={}", response.getStatusCode());
