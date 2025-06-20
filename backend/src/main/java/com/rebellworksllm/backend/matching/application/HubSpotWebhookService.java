@@ -2,9 +2,9 @@ package com.rebellworksllm.backend.matching.application;
 
 import com.rebellworksllm.backend.email.application.EmailService;
 import com.rebellworksllm.backend.hubspot.domain.StudentContact;
+import com.rebellworksllm.backend.hubspot.application.HubSpotStudentProvider;
 import com.rebellworksllm.backend.matching.application.exception.InsufficientMatchesException;
 import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
-import com.rebellworksllm.backend.hubspot.application.HubSpotStudentService;
 import com.rebellworksllm.backend.matching.domain.*;
 import com.rebellworksllm.backend.openai.domain.OpenAIEmbeddingService;
 import com.rebellworksllm.backend.whatsapp.domain.WhatsAppService;
@@ -24,20 +24,20 @@ public class HubSpotWebhookService {
     private static final int FIRST_MATCH_LIMIT = 5;
 
     private final StudentJobMatchEngine matchEngine;
-    private final HubSpotStudentService studentService;
+    private final HubSpotStudentProvider studentProvider;
     private final OpenAIEmbeddingService embeddingService;
     private final EmailService emailService;
     private final WhatsAppService whatsAppService;
     private final VacancyNotificationAdapter vacancyNotificationAdapter;
 
     public HubSpotWebhookService(StudentJobMatchEngine matchEngine,
-                                 HubSpotStudentService studentService,
+                                 HubSpotStudentProvider studentProvider,
                                  OpenAIEmbeddingService embeddingService,
                                  WhatsAppService whatsAppService,
                                  EmailService emailService,
                                  VacancyNotificationAdapter vacancyNotificationAdapter) {
         this.matchEngine = matchEngine;
-        this.studentService = studentService;
+        this.studentProvider = studentProvider;
         this.embeddingService = embeddingService;
         this.whatsAppService = whatsAppService;
         this.vacancyNotificationAdapter = vacancyNotificationAdapter;
@@ -47,7 +47,7 @@ public class HubSpotWebhookService {
     @Async("jobMatchingExecutor")
     public void processStudentMatch(long id) {
         logger.info("Starting matching progress for ID: {}", id);
-        StudentContact studentContact = studentService.getStudentById(id);
+        StudentContact studentContact = studentProvider.getStudentById(id);
         logger.debug("Fetched HubSpot student: {}", studentContact.fullName());
         Student student = toStudent(studentContact);
         List<StudentVacancyMatch> matches = matchEngine.query(student, FIRST_MATCH_LIMIT);

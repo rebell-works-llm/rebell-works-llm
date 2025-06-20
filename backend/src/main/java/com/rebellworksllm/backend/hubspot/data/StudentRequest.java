@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.hubspot.application.dto;
+package com.rebellworksllm.backend.hubspot.data;
 
 import java.util.Map;
 

@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.hubspot.domain;
+package com.rebellworksllm.backend.hubspot.application.dto;
 
 public record StudentContact(
 
