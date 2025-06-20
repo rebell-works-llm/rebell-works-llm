@@ -1,16 +1,15 @@
 package com.rebellworksllm.backend.vacancies.application;
 
-import com.rebellworksllm.backend.vacancies.domain.ScoredVacancy;
-import com.rebellworksllm.backend.vacancies.domain.Vacancy;
+import com.rebellworksllm.backend.vacancies.application.dto.MatchedVacancy;
+import com.rebellworksllm.backend.vacancies.application.dto.VacancyResponseDto;
 
 import java.util.List;
 
 public interface VacancyProvider {
 
-    List<ScoredVacancy> getVacanciesBySimilarity(List<Double> vector, int topK);
+    List<MatchedVacancy> getVacanciesBySimilarity(List<Double> vector, int topK);
 
-    Vacancy getVacancyById(int id);
+    VacancyResponseDto getVacancyById(String id);
 
-    List<Vacancy> getVacanciesByIds(List<Integer> ids);
-
+    boolean incrementMatchCount(String id);
 }

@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.config;
+package com.rebellworksllm.backend.vacancies.config;
 
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
