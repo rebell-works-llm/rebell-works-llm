@@ -1,6 +1,9 @@
 package com.rebellworksllm.backend.vacancies.data;
 
 import com.rebellworksllm.backend.matching.application.exception.MatchingException;
+import com.rebellworksllm.backend.matching.domain.Student;
+import com.rebellworksllm.backend.matching.domain.StudentVacancyMatch;
+import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
 import com.rebellworksllm.backend.vacancies.application.dto.PineconeMatchResponse;
 import com.rebellworksllm.backend.vacancies.application.dto.PineconeQueryRequest;
 import com.rebellworksllm.backend.vacancies.application.dto.PineconeQueryResult;
@@ -52,8 +55,11 @@ public class PineconeService {
                     .map(match -> new ScoredVacancy(
                             new Vacancy(match.id(),
                                     match.metadata().title(),
-                                    match.metadata().link()
-                            ),
+                                    match.metadata().description(),
+                                    match.metadata().working_hours(),
+                                    match.metadata().salary(),
+                                    match.metadata().position(),
+                                    new EmbeddingResult(match.values())),
                             match.score()))
                     .toList();
 
@@ -66,8 +72,15 @@ public class PineconeService {
     }
 
     private boolean validateMatch(PineconeMatchResponse match) {
-        return (match.metadata() != null) &&
-                (match.metadata().title()) != null &&
-                (match.metadata().link()) != null;
+        if (match == null || match.metadata() == null || match.values() == null) {
+            return false;
+        }
+
+        var metadata = match.metadata();
+        return metadata.title() != null &&
+                metadata.description() != null &&
+                metadata.working_hours() != null &&
+                metadata.salary() != null &&
+                metadata.position() != null;
     }
 }

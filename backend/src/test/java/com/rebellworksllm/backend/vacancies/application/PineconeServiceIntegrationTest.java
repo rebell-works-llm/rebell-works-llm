@@ -4,6 +4,7 @@ import com.rebellworksllm.backend.matching.domain.Student;
 import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
 import com.rebellworksllm.backend.vacancies.data.PineconeService;
 import com.rebellworksllm.backend.vacancies.domain.ScoredVacancy;
+import com.rebellworksllm.backend.vacancies.domain.Vacancy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,9 +40,11 @@ public class PineconeServiceIntegrationTest {
     void testQueryTopMatches() {
 
         List<ScoredVacancy> matches = pineconeService.queryTopMatches(student.embeddingResult().embeddings(), 1);
+        Vacancy vacancy = matches.getFirst().vacancy();
 
         assertEquals(1, matches.size());
-        assertFalse(matches.getFirst().vacancy().title().isEmpty());
-        assertFalse(matches.getFirst().vacancy().website().isEmpty());
+        assertFalse(vacancy.id().isEmpty());
+        assertFalse(vacancy.title().isEmpty());
+        assertFalse(vacancy.description().isEmpty());
     }
 }
