@@ -30,7 +30,7 @@ public class PineconeService {
             PineconeQueryRequest request = new PineconeQueryRequest(vector, topK, true, true);
             HttpEntity<PineconeQueryRequest> entity = new HttpEntity<>(request);
 
-            logger.debug("Sending Pinecone query with topK: {}", topK);
+            logger.debug("Requesting {} pinecone matches (vacancies)", topK);
             ResponseEntity<PineconeQueryResult> response = restTemplate.postForEntity("/query", entity, PineconeQueryResult.class);
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 logger.error("Pinecone API error: status={}", response.getStatusCode());
@@ -40,10 +40,8 @@ public class PineconeService {
             List<PineconeMatchResponse> matches = response.getBody().matches();
             if (matches == null || matches.isEmpty()) {
                 logger.warn("No matches found");
-                throw new MatchingException("No matches found for student in Pinecone query");
+                throw new MatchingException("No matches found");
             }
-            logger.debug("Retrieved {} matches from Pinecone", matches.size());
-
 
             List<MatchedVacancy> result = matches.stream()
                     .filter(this::validateMatch)
@@ -60,7 +58,12 @@ public class PineconeService {
                             match.score()))
                     .toList();
 
-            logger.info("Returning {} matches", result.size());
+            List<String> vacancyIds = result.stream()
+                    .map(v -> v.vacancyResponse().id())
+                    .filter(id -> !id.isEmpty())
+                    .toList();
+
+            logger.info("Found {} pinecone matches, IDs: {}", matches.size(), vacancyIds);
             return result;
         } catch (Exception e) {
             logger.error("Pinecone query failed for student: {}", e.getMessage(), e);

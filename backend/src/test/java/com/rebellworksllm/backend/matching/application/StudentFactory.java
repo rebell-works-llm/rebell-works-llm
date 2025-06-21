@@ -7,6 +7,7 @@ public class StudentFactory {
 
     public static Student createStudent(EmbeddingResult embeddingResult) {
         return new Student(
+                "1",
                 "John Doe",
                 "john.doe@domain.com",
                 "12345678",

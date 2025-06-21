@@ -3,17 +3,23 @@ package com.rebellworksllm.backend.matching.application;
 import com.rebellworksllm.backend.email.application.EmailService;
 import com.rebellworksllm.backend.hubspot.application.dto.StudentContact;
 import com.rebellworksllm.backend.hubspot.application.HubSpotStudentProvider;
+import com.rebellworksllm.backend.matching.application.dto.BatchResponse;
 import com.rebellworksllm.backend.matching.application.exception.InsufficientMatchesException;
+import com.rebellworksllm.backend.matching.presentation.dto.HubSpotWebhooksBatchResponse;
 import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
 import com.rebellworksllm.backend.matching.domain.*;
 import com.rebellworksllm.backend.openai.domain.OpenAIEmbeddingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 import static com.rebellworksllm.backend.matching.application.util.LogUtils.maskEmail;
 import static com.rebellworksllm.backend.matching.application.util.LogUtils.maskPhone;
@@ -24,6 +30,7 @@ public class HubSpotWebhookService {
     private static final Logger logger = LoggerFactory.getLogger(HubSpotWebhookService.class);
     private static final int FIRST_MATCH_LIMIT = 5;
 
+    private final Executor jobMatchingExecutor;
     private final StudentJobMatchEngine matchEngine;
     private final HubSpotStudentProvider studentProvider;
     private final OpenAIEmbeddingService embeddingService;
@@ -37,61 +44,90 @@ public class HubSpotWebhookService {
                                  HubSpotStudentProvider studentProvider,
                                  OpenAIEmbeddingService embeddingService,
                                  EmailService emailService,
-                                 VacancyNotificationAdapter vacancyNotificationAdapter) {
+                                 VacancyNotificationAdapter vacancyNotificationAdapter,
+                                 @Qualifier("jobMatchingExecutor") Executor jobMatchingExecutor) {
         this.matchEngine = matchEngine;
         this.studentProvider = studentProvider;
         this.embeddingService = embeddingService;
         this.vacancyNotificationAdapter = vacancyNotificationAdapter;
         this.emailService = emailService;
+        this.jobMatchingExecutor = jobMatchingExecutor;
     }
 
-    @Async("jobMatchingExecutor")
-    public void processStudentMatch(long id) {
-        logger.info("Starting matching progress for ID: {}", id);
-        StudentContact studentContact = studentProvider.getStudentById(id);
-        logger.debug("Fetched HubSpot student: {}", studentContact.fullName());
-        Student student = toStudent(studentContact);
-        List<StudentVacancyMatch> matches = matchEngine.query(student, FIRST_MATCH_LIMIT);
+    public BatchResponse processBatch(List<HubSpotWebhooksBatchResponse.HubSpotWebhooksPayload> payloads) {
 
-        if (matches.size() < FIRST_MATCH_LIMIT) {
-            logger.warn("Insufficient matches found for student: {}, required: {}, found: {}", studentContact.fullName(), FIRST_MATCH_LIMIT, matches.size());
-            throw new InsufficientMatchesException("Insufficient vacancy matches found for student: " + studentContact.fullName());
-        }
+        // Launch each item in parallel
+        List<CompletableFuture<BatchResponse.BatchPayloadResponse>> futures = payloads.stream()
+                .map(payload ->
+                        CompletableFuture.supplyAsync(() -> processStudentMatch(payload.objectId()), jobMatchingExecutor)
+                                .exceptionally(ex -> {
+                                    logger.error("Error processing objectId={}: {}", payload.objectId(), ex.getMessage(), ex);
+                                    return new BatchResponse.BatchPayloadResponse(payload.objectId(), "Failed: " + ex.getMessage());
+                                })
+                )
+                .toList();
 
-        List<String> vacancyIds = getVacancyIds(matches);
-        logger.info("Retrieved {} matches for student: {} with vacancy IDs: {}", matches.size(), studentContact.fullName(), vacancyIds);
+        // Wait for all tasks to finish
+        CompletableFuture<Void> allDone = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+
+        // Collect results (blocking here until all are done, still async up to this point!)
+        List<BatchResponse.BatchPayloadResponse> results = allDone.thenApply(v ->
+                futures.stream().map(CompletableFuture::join).toList()
+        ).join();
+
+        logger.info("Completed batch processing for {} payload(s)", results.size());
+        return BatchResponse.success("Batch processed", results);
+    }
+
+    public BatchResponse.BatchPayloadResponse processStudentMatch(long id) {
+        String correlationId = UUID.randomUUID().toString();
+        MDC.put("correlationId", correlationId);
+        logger.info("Processing webhook - objectId: {}", id);
 
         try {
-            logger.info("Sending WhatsApp message to name: {}, phone: {}", studentContact.fullName(), maskPhone(studentContact.phoneNumber()));
-            vacancyNotificationAdapter.notifyCandidate(
-                    studentContact.phoneNumber(),
-                    studentContact.fullName(),
-                    matches.get(0).vacancy(),
-                    matches.get(1).vacancy()
-            );
+            Student student = findStudent(id);
+            List<StudentVacancyMatch> matches = matchEngine.query(student, FIRST_MATCH_LIMIT);
 
-            sendAdminNotificationEmail(studentContact);
+            if (matches.size() < FIRST_MATCH_LIMIT) {
+                logger.warn("Insufficient matches found for student: {}, required: {}, found: {}", id, FIRST_MATCH_LIMIT, matches.size());
+                throw new InsufficientMatchesException("Insufficient vacancy matches found for student: " + id);
+            }
 
+            try {
+                logger.info("Sending WhatsApp message to student: {}, phone: {}", id, maskPhone(student.phoneNumber()));
+                vacancyNotificationAdapter.notifyCandidate(
+                        student.phoneNumber(),
+                        student.name(),
+                        matches.get(0).vacancy(),
+                        matches.get(1).vacancy()
+                );
 
-            logger.info("WhatsApp message sent successfully to student: {}, phone: {}", studentContact.fullName(), maskPhone(studentContact.phoneNumber()));
-        } catch (Exception e) {
-            logger.error("Failed to send WhatsApp message for student: {}, error: {}", studentContact.fullName(), e.getMessage(), e);
-            throw new RuntimeException("Failed to send WhatsApp message: " + e.getMessage(), e);
+                sendAdminNotificationEmail(student);
+
+                logger.info("WhatsApp message sent successfully to student: {}, phone: {}", student.name(), maskPhone(student.phoneNumber()));
+                logger.debug("Successfully processed webhook for objectId: {}", id);
+            } catch (Exception e) {
+                logger.error("Failed to send WhatsApp message for student: {}, error: {}", student.name(), e.getMessage(), e);
+                throw new RuntimeException("Failed to send WhatsApp message: " + e.getMessage(), e);
+            }
+        } catch (Exception ex) {
+            logger.error("Failed to process webhook - objectId: {}, error: {}", id, ex.getMessage(), ex);
+            return new BatchResponse.BatchPayloadResponse(id, ex.getMessage());
         }
+
+        MDC.clear();
+        return new BatchResponse.BatchPayloadResponse(id, "Student matched successfully");
     }
 
-    private List<String> getVacancyIds(List<StudentVacancyMatch> matches) {
-        return matches.stream()
-                .filter(match -> !match.vacancy().id().isEmpty())
-                .map(match -> match.vacancy().id())
-                .toList();
-    }
+    private Student findStudent(long id) {
+        StudentContact studentContact = studentProvider.getStudentById(id);
+        logger.debug("Fetched HubSpot student: {}", studentContact.fullName());
 
-    private Student toStudent(StudentContact studentContact) {
         logger.debug("Embedding text for student: {}", studentContact.fullName());
         EmbeddingResult studentEmbeddingResult = embeddingService.embedText(studentContact.stringify());
 
         return new Student(
+                studentContact.id(),
                 studentContact.fullName(),
                 studentContact.email(),
                 studentContact.phoneNumber(),
@@ -102,7 +138,7 @@ public class HubSpotWebhookService {
         );
     }
 
-    private void sendAdminNotificationEmail(StudentContact studentContact) {
+    private void sendAdminNotificationEmail(Student student) {
         String emailBody = String.format("""
                         📢 *Nieuwe student gematcht!*
 
@@ -113,23 +149,18 @@ public class HubSpotWebhookService {
                         📍 Locatie: %s
 
                         HubSpot object ID: %s
-                        
+
                         Bekijk de student in HubSpot voor meer details.
                         """,
-                studentContact.fullName(),
-                studentContact.email(),
-                maskPhone(studentContact.phoneNumber()),
-                studentContact.study(),
-                studentContact.studyLocation(),
-                studentContact.id()
+                student.name(),
+                student.email(),
+                maskPhone(student.phoneNumber()),
+                student.study(),
+                student.studyLocation(),
+                student.id()
         );
 
-        emailService.send(
-                mailTo,
-                "Nieuwe student gematcht",
-                emailBody
-        );
-
-        logger.info("Confirmation email sent to {} for student: {}", maskEmail(mailTo), studentContact.fullName());
+        emailService.send(mailTo, "Nieuwe student gematcht", emailBody);
+        logger.info("Confirmation email sent to {} for student: {}", maskEmail(mailTo), student.name());
     }
 }
