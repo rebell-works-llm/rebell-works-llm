@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.vacancies.config;
+package com.rebellworksllm.backend.config.supabase;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +16,7 @@ public class SupabaseConfig {
                 .interceptors((request, body, execution) -> {
                     request.getHeaders().add("apikey", credentials.getApiKey());
                     request.getHeaders().add("Authorization", "Bearer " + credentials.getApiKey());
-                    request.getHeaders().add("Content-Type", "application/json");
+//                    request.getHeaders().add("Content-Type", "application/json");
 //                    System.out.println("Supabase full URI: " + request.getURI());
 //                    System.out.println("Supabase headers: " + request.getHeaders());
                     return execution.execute(request, body);
