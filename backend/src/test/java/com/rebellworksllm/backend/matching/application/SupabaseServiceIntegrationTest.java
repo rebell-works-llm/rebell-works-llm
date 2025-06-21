@@ -49,7 +49,7 @@ public class SupabaseServiceIntegrationTest {
         public RestTemplate restTemplate() {
             RestTemplate mockTemplate = Mockito.mock(RestTemplate.class);
 
-            SupabaseResponse mockResponse = new SupabaseResponse("id", 1.0, 1);
+            SupabaseResponse mockResponse = new SupabaseResponse("id", 1.0, 1, "link", "title");
             SupabaseResponse[] body = { mockResponse };
 
             Mockito.when(mockTemplate.getForEntity(Mockito.any(), Mockito.eq(SupabaseResponse[].class)))

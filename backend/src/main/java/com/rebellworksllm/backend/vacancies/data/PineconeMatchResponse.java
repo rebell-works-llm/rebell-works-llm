@@ -16,10 +16,8 @@ public record PineconeMatchResponse(
             String description,
             String working_hours,
             String salary,
-            String position
-
-
-
+            String position,
+            String link
     ) {
     }
 }

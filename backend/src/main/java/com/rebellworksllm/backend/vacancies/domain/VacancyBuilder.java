@@ -8,6 +8,7 @@ public class VacancyBuilder {
     private String salary;
     private String workingHours;
     private String function;
+    private String link;
     double priority;
     int matchCount;
 
@@ -50,6 +51,11 @@ public class VacancyBuilder {
         return this;
     }
 
+    public VacancyBuilder link(String link) {
+        this.link = link;
+        return this;
+    }
+
     public Vacancy build() {
         Vacancy vacancy = new Vacancy(id);
         vacancy.setTitle(title);
@@ -59,6 +65,7 @@ public class VacancyBuilder {
         vacancy.setFunction(function);
         vacancy.setPriority(priority);
         vacancy.setMatchCount(matchCount);
+        vacancy.setLink(link);
         return vacancy;
     }
 }

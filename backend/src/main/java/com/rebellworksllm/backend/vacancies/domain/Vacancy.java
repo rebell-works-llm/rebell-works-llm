@@ -8,6 +8,7 @@ public class Vacancy {
     private String salary;
     private String workingHours;
     private String function;
+    private String link;
     double priority;
     int matchCount;
 
@@ -73,5 +74,13 @@ public class Vacancy {
 
     public void setMatchCount(int matchCount) {
         this.matchCount = matchCount;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
     }
 }

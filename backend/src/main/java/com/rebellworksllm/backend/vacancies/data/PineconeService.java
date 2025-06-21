@@ -51,6 +51,7 @@ public class PineconeService {
                                     match.metadata().description(),
                                     match.metadata().working_hours(),
                                     match.metadata().salary(),
+                                    match.metadata().link(),
                                     match.metadata().position(),
                                     0,
                                     0),

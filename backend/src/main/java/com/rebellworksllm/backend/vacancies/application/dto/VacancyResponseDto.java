@@ -9,6 +9,7 @@ public record VacancyResponseDto(
         String description,
         String salary,
         String workingHours,
+        String link,
         String function,
         double priority,
         int matchCount
@@ -21,6 +22,7 @@ public record VacancyResponseDto(
                 vacancy.getDescription(),
                 vacancy.getSalary(),
                 vacancy.getWorkingHours(),
+                vacancy.getLink(),
                 vacancy.getFunction(),
                 vacancy.getPriority(),
                 vacancy.getMatchCount()

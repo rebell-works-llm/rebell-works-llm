@@ -5,6 +5,7 @@ import com.rebellworksllm.backend.hubspot.application.dto.StudentContact;
 import com.rebellworksllm.backend.hubspot.application.HubSpotStudentProvider;
 import com.rebellworksllm.backend.matching.application.dto.BatchResponse;
 import com.rebellworksllm.backend.matching.application.exception.InsufficientMatchesException;
+import com.rebellworksllm.backend.matching.application.util.MatchingUtils;
 import com.rebellworksllm.backend.matching.data.MatchMessageRepository;
 import com.rebellworksllm.backend.matching.data.dto.MatchMessageRequest;
 import com.rebellworksllm.backend.matching.presentation.dto.HubSpotWebhooksBatchResponse;
@@ -113,7 +114,8 @@ public class HubSpotWebhookService {
                 );
 
                 List<String> vacancyIds = List.of(vac1.id(), vac2.id(), vac3.id(), vac4.id());
-                matchMessageRepository.save(new MatchMessageRequest(vacancyIds, student.phoneNumber()));
+                String normalizedPhone = MatchingUtils.normalizePhone(student.phoneNumber());
+                matchMessageRepository.save(new MatchMessageRequest(vacancyIds, normalizedPhone));
 
                 sendAdminNotificationEmail(student);
 
