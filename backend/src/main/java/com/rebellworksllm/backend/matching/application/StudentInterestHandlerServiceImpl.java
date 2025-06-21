@@ -56,19 +56,42 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
 
         String htmlBody = String.format("""
                         <html>
-                        <body style="font-family: Arial, sans-serif; color: #333;">
-                            <h2 style="color: #2c3e50;">📩 New Student Interest</h2>
-
-                            <p><strong>HubSpot ID:</strong> %s</p>
-                            <p><strong>Name:</strong> %s</p>
-                            <p><strong>Phone:</strong> %s</p>
-
-                            <p><strong>Vacancy id:</strong><br/>"%s"</p>
-                            <p><strong>Vacancy title:</strong><br/>"%s"</p>
-                            <p><strong>Vacancy website:</strong><br/>"%s"</p>
-
-                            <p><strong>Actie:</strong><br/>"%s"</p>
-                        </body>
+                          <body style="background: #f8f9fa; font-family: Arial, sans-serif; color: #333;">
+                            <div style="max-width: 520px; margin: 40px auto; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(44, 62, 80, .07); padding: 32px;">
+                              <h2 style="color: #3476de; margin-bottom: 24px; font-weight: 700;">
+                                <span style="font-size: 1.6em;">📩</span> New Student Interest
+                              </h2>
+                              <div style="margin-bottom: 16px;">
+                                <span style="color: #888; font-size: 0.95em;">HubSpot ID:</span>
+                                <span style="color: #222; font-weight: bold;">%s</span>
+                              </div>
+                              <div style="margin-bottom: 16px;">
+                                <span style="color: #888; font-size: 0.95em;">Name:</span>
+                                <span style="color: #222; font-weight: bold;">%s</span>
+                              </div>
+                              <div style="margin-bottom: 24px;">
+                                <span style="color: #888; font-size: 0.95em;">Phone:</span>
+                                <span style="color: #2c3e50;">%s</span>
+                              </div>
+                              <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;">
+                              <div style="margin-bottom: 16px;">
+                                <span style="color: #888;">Vacancy ID:</span>
+                                <span style="color: #2c3e50;">%s</span>
+                              </div>
+                              <div style="margin-bottom: 16px;">
+                                <span style="color: #888;">Vacancy title:</span>
+                                <span style="color: #2c3e50;">%s</span>
+                              </div>
+                              <div style="margin-bottom: 24px;">
+                                <span style="color: #888;">Vacancy website:</span><br/>
+                                <a href="%s" style="color: #fff; background: #3476de; padding: 8px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 6px;">Open Vacancy</a>
+                              </div>
+                              <div style="margin-bottom: 10px;">
+                                <span style="color: #888;">Action:</span>
+                                <span style="color: #222;">%s</span>
+                              </div>
+                            </div>
+                          </body>
                         </html>
                         """,
                 studentContact.id(),
