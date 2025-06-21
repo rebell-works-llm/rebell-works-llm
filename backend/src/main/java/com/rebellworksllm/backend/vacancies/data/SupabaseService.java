@@ -34,6 +34,7 @@ public class SupabaseService {
                 throw new MatchingException("Supabase GET error: " + response.getStatusCode());
             }
 
+            System.out.println(Arrays.toString(response.getBody()));
             return Arrays.stream(response.getBody())
                     .findFirst()
                     .orElseThrow(() -> new MatchingException("Vacancy not found for id: " + id));

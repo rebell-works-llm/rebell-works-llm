@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
@@ -64,13 +63,13 @@ public class MatchMessageRepositoryImpl implements MatchMessageRepository {
     public MatchMessageResponse findByContactPhone(String contactPhone) {
         logger.debug("Fetching match messages for phone: {}", contactPhone);
         try {
-            URI uri = UriComponentsBuilder
+            String path = UriComponentsBuilder
                     .fromPath("/rest/v1/messages")
                     .queryParam("contactPhone", "eq." + contactPhone)
-                    .build()
-                    .toUri();
+                    .toUriString();
 
-            ResponseEntity<MatchMessageResponse[]> response = restTemplate.getForEntity(uri, MatchMessageResponse[].class);
+            ResponseEntity<MatchMessageResponse[]> response =
+                    restTemplate.getForEntity(path, MatchMessageResponse[].class);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 logger.error("Supabase API error for GET: status={}", response.getStatusCode());
