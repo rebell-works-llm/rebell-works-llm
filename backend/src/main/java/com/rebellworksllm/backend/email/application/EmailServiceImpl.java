@@ -3,6 +3,8 @@ package com.rebellworksllm.backend.email.application;
 import com.rebellworksllm.backend.email.application.exception.EmailException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -10,6 +12,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class EmailServiceImpl implements EmailService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);
 
     private final JavaMailSender mailSender;
 
@@ -27,10 +31,10 @@ public class EmailServiceImpl implements EmailService {
 
         try {
             mailSender.send(message);
-            System.out.println("Fallback e-mail succesvol verzonden naar " + to);
+            logger.info("E-mail succesvol verzonden");
         } catch (Exception e) {
+            logger.error("Fout bij verzenden e-mail, error: {}", e.getMessage(), e);
             throw new EmailException("Fout bij verzenden e-mail: " + e.getMessage(), e);
-//            System.err.println("Fout bij verzenden fallback e-mail naar " + to);
         }
     }
 
@@ -45,7 +49,9 @@ public class EmailServiceImpl implements EmailService {
             helper.setText(htmlBody, true);
 
             mailSender.send(message);
+            logger.info("HTML e-mail succesvol verzonden");
         } catch (MessagingException e) {
+            logger.error("Fout bij verzenden html e-mail, error: {}", e.getMessage(), e);
             throw new EmailException("Fout bij verzenden HTML e-mail: " + e.getMessage(), e);
         }
     }

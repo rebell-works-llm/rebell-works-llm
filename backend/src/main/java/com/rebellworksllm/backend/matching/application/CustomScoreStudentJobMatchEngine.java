@@ -6,6 +6,7 @@ import com.rebellworksllm.backend.matching.domain.Student;
 import com.rebellworksllm.backend.matching.domain.StudentVacancyMatch;
 import com.rebellworksllm.backend.matching.domain.Vacancy;
 import com.rebellworksllm.backend.vacancies.application.VacancyProvider;
+import com.rebellworksllm.backend.vacancies.application.dto.MatchedVacancy;
 import com.rebellworksllm.backend.vacancies.application.dto.VacancyResponseDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,10 +29,11 @@ public class CustomScoreStudentJobMatchEngine implements StudentJobMatchEngine {
 
     @Override
     public List<StudentVacancyMatch> query(Student student, int amount) {
-        logger.info("Starting match engine for student, topK: {}", amount);
+        logger.info("Starting match engine for student with topK: {}, amount: {}", TOP_K, amount);
         try {
             List<Double> studentVector = student.embeddingResult().embeddings();
-            List<StudentVacancyMatch> initialMatches = vacancyProvider.getVacanciesBySimilarity(studentVector, TOP_K).stream()
+            List<MatchedVacancy> matchedVacancies = vacancyProvider.getVacanciesBySimilarity(studentVector, TOP_K);
+            List<StudentVacancyMatch> initialMatches = matchedVacancies.stream()
                     .map(scoredVacancy -> new StudentVacancyMatch(
                             new Vacancy(
                                     scoredVacancy.vacancyResponse().id(),
