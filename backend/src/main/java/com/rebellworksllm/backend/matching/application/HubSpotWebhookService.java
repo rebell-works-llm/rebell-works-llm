@@ -5,6 +5,8 @@ import com.rebellworksllm.backend.hubspot.application.dto.StudentContact;
 import com.rebellworksllm.backend.hubspot.application.HubSpotStudentProvider;
 import com.rebellworksllm.backend.matching.application.dto.BatchResponse;
 import com.rebellworksllm.backend.matching.application.exception.InsufficientMatchesException;
+import com.rebellworksllm.backend.matching.data.MatchMessageRepository;
+import com.rebellworksllm.backend.matching.data.dto.MatchMessageRequest;
 import com.rebellworksllm.backend.matching.presentation.dto.HubSpotWebhooksBatchResponse;
 import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
 import com.rebellworksllm.backend.matching.domain.*;
@@ -28,7 +30,7 @@ import static com.rebellworksllm.backend.matching.application.util.LogUtils.mask
 public class HubSpotWebhookService {
 
     private static final Logger logger = LoggerFactory.getLogger(HubSpotWebhookService.class);
-    private static final int FIRST_MATCH_LIMIT = 5;
+    private static final int FIRST_MATCH_LIMIT = 4;
 
     private final Executor jobMatchingExecutor;
     private final StudentJobMatchEngine matchEngine;
@@ -36,6 +38,7 @@ public class HubSpotWebhookService {
     private final OpenAIEmbeddingService embeddingService;
     private final EmailService emailService;
     private final VacancyNotificationAdapter vacancyNotificationAdapter;
+    private final MatchMessageRepository matchMessageRepository;
 
     @Value("${mail.to}")
     private String mailTo;
@@ -45,13 +48,15 @@ public class HubSpotWebhookService {
                                  OpenAIEmbeddingService embeddingService,
                                  EmailService emailService,
                                  VacancyNotificationAdapter vacancyNotificationAdapter,
-                                 @Qualifier("jobMatchingExecutor") Executor jobMatchingExecutor) {
+                                 @Qualifier("jobMatchingExecutor") Executor jobMatchingExecutor,
+                                 MatchMessageRepository matchMessageRepository) {
         this.matchEngine = matchEngine;
         this.studentProvider = studentProvider;
         this.embeddingService = embeddingService;
         this.vacancyNotificationAdapter = vacancyNotificationAdapter;
         this.emailService = emailService;
         this.jobMatchingExecutor = jobMatchingExecutor;
+        this.matchMessageRepository = matchMessageRepository;
     }
 
     public BatchResponse processBatch(List<HubSpotWebhooksBatchResponse.HubSpotWebhooksPayload> payloads) {
@@ -95,12 +100,20 @@ public class HubSpotWebhookService {
 
             try {
                 logger.info("Sending WhatsApp message to student: {}, phone: {}", id, maskPhone(student.phoneNumber()));
+
+                Vacancy vac1 = matches.get(0).vacancy();
+                Vacancy vac2 = matches.get(1).vacancy();
+                Vacancy vac3 = matches.get(1).vacancy();
+                Vacancy vac4 = matches.get(1).vacancy();
                 vacancyNotificationAdapter.notifyCandidate(
                         student.phoneNumber(),
                         student.name(),
-                        matches.get(0).vacancy(),
-                        matches.get(1).vacancy()
+                        vac1,
+                        vac2
                 );
+
+                List<String> vacancyIds = List.of(vac1.id(), vac2.id(), vac3.id(), vac4.id());
+                matchMessageRepository.save(new MatchMessageRequest(vacancyIds, student.phoneNumber()));
 
                 sendAdminNotificationEmail(student);
 
