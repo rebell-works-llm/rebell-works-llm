@@ -26,7 +26,7 @@ public class VacancyNotificationAdapter {
         whatsAppService.sendTemplateMessage(phoneNumber, "rebell_template", "nl", parameters);
     }
 
-    public void sendExtraVacancies(String phoneNumber, Vacancy vac3, Vacancy vac4){
+    public void sendExtraVacancies(String phoneNumber, VacancyResponseDto vac3, VacancyResponseDto vac4){
 
         Vacancy vacancy3 = new Vacancy(vac3.id(), vac3.title(), vac3.description(), vac3.salary(), vac3.workingHours(), vac3.function());
         Vacancy vacancy4 = new Vacancy(vac4.id(), vac4.title(), vac4.description(), vac4.salary(), vac4.workingHours(), vac4.function());
