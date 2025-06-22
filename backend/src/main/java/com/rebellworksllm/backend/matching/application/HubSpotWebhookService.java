@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -69,7 +70,7 @@ public class HubSpotWebhookService {
                         CompletableFuture.supplyAsync(() -> processStudentMatch(payload.objectId()), jobMatchingExecutor)
                                 .exceptionally(ex -> {
                                     logger.error("Batch error for objectId={}: {}", payload.objectId(), ex.getMessage(), ex);
-                                    return new BatchResponse.BatchPayloadResponse(payload.objectId(), "Failed: " + ex.getMessage());
+                                    return BatchResponse.singleMessage(payload.objectId(), "Failed: " + ex.getMessage());
                                 })
                 )
                 .toList();
@@ -87,58 +88,72 @@ public class HubSpotWebhookService {
         final String correlationId = UUID.randomUUID().toString();
         MDC.put("correlationId", correlationId);
 
-        StringBuilder statusMsg = new StringBuilder();
-        boolean success = true;
+        List<BatchResponse.BatchPayloadStepResult> stepResults = new ArrayList<>();
 
         try {
             logger.info("Processing webhook for objectId: {}", id);
 
-            // 1. HubSpot Student
-            Student student = findStudent(id);
-            List<StudentVacancyMatch> matches = matchEngine.query(student, FIRST_MATCH_LIMIT);
+            // 1. Student
+            Student student;
+            try {
+                student = findStudent(id);
+                stepResults.add(new BatchResponse.BatchPayloadStepResult(
+                        "student", true, "Student fetched and embedding created"));
+            } catch (Exception e) {
+                logger.error("Failed to fetch student or embedding for id {}: {}", id, e.getMessage(), e);
+                stepResults.add(new BatchResponse.BatchPayloadStepResult(
+                        "student", false, "Student fetch/embedding failed: " + e.getMessage()));
+                return new BatchResponse.BatchPayloadResponse(id, stepResults);
+            }
 
-            if (matches.size() < FIRST_MATCH_LIMIT) {
-                logger.warn("Insufficient matches for student {}: required={}, found={}", id, FIRST_MATCH_LIMIT, matches.size());
-                throw new InsufficientMatchesException("Insufficient vacancy matches found for student: " + id);
+            List<StudentVacancyMatch> matches;
+            try {
+                matches = matchEngine.query(student, FIRST_MATCH_LIMIT);
+                if (matches.size() < FIRST_MATCH_LIMIT) {
+                    String msg = "Insufficient vacancy matches found for student: " + id;
+                    logger.warn(msg);
+                    stepResults.add(new BatchResponse.BatchPayloadStepResult("matching", false, msg));
+                    return new BatchResponse.BatchPayloadResponse(id, stepResults);
+                }
+                stepResults.add(new BatchResponse.BatchPayloadStepResult("matching", true, "Matches found: " + matches.size()));
+            } catch (Exception e) {
+                logger.error("Matching failed for {}: {}", student.name(), e.getMessage(), e);
+                stepResults.add(new BatchResponse.BatchPayloadStepResult("matching", false, "Matching failed: " + e.getMessage()));
+                return new BatchResponse.BatchPayloadResponse(id, stepResults);
             }
 
             // 2. WhatsApp
             try {
                 sendVacancyNotifications(student, matches);
+                stepResults.add(new BatchResponse.BatchPayloadStepResult("whatsapp", true, "WhatsApp notification sent"));
             } catch (Exception e) {
                 logger.error("WhatsApp notification failed for {}: {}", student.name(), e.getMessage(), e);
-                statusMsg.append("WhatsApp failed: ").append(e.getMessage()).append("; ");
-                success = false;
+                stepResults.add(new BatchResponse.BatchPayloadStepResult("whatsapp", false, "WhatsApp failed: " + e.getMessage()));
             }
 
             // 3. Persist match
             try {
                 persistMatchMessages(student, matches);
+                stepResults.add(new BatchResponse.BatchPayloadStepResult("persist", true, "Match message persisted"));
             } catch (Exception e) {
                 logger.error("Persisting match message failed for {}: {}", student.name(), e.getMessage(), e);
-                statusMsg.append("Persist failed: ").append(e.getMessage()).append("; ");
-                success = false;
+                stepResults.add(new BatchResponse.BatchPayloadStepResult("persist", false, "Persist failed: " + e.getMessage()));
             }
 
             // 4. Admin mail
             try {
                 sendAdminNotificationEmail(student);
+                stepResults.add(new BatchResponse.BatchPayloadStepResult("adminMail", true, "Admin mail sent"));
             } catch (Exception e) {
-                logger.error("Admin email failed for {}: {}", student.name(), e.getMessage(), e);
-                statusMsg.append("Admin mail failed: ").append(e.getMessage()).append("; ");
-                success = false;
+                logger.error("Admin mail failed for {}: {}", student.name(), e.getMessage(), e);
+                stepResults.add(new BatchResponse.BatchPayloadStepResult("adminMail", false, "Admin mail failed: " + e.getMessage()));
             }
 
-            if (success) {
-                logger.info("Processed webhook successfully for objectId: {}", id);
-                return new BatchResponse.BatchPayloadResponse(id, "Student matched and notified successfully");
-            } else {
-                logger.warn("Processed webhook with issues for objectId: {}: {}", id, statusMsg);
-                return new BatchResponse.BatchPayloadResponse(id, statusMsg.toString());
-            }
+            logger.info("Processed webhook for objectId: {} with results: {}", id, stepResults);
+            return new BatchResponse.BatchPayloadResponse(id, stepResults);
         } catch (Exception ex) {
             logger.error("Failed to process webhook - objectId: {}, error: {}", id, ex.getMessage(), ex);
-            return new BatchResponse.BatchPayloadResponse(id, ex.getMessage());
+            return BatchResponse.singleMessage(id, ex.getMessage());
         } finally {
             MDC.clear();
         }

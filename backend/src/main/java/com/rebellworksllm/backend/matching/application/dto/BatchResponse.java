@@ -12,12 +12,22 @@ public record BatchResponse(
         List<BatchPayloadResponse> payloadResponses
 ) {
 
-    public record BatchPayloadResponse(
-
-            long objectId,
+    public record BatchPayloadStepResult(
+            String step,
+            boolean success,
             String message
-    ) {
+    ) {}
 
+    public record BatchPayloadResponse(
+            long objectId,
+            List<BatchPayloadStepResult> steps
+    ) {}
+
+    public static BatchPayloadResponse singleMessage(long objectId, String message) {
+        return new BatchPayloadResponse(
+                objectId,
+                List.of(new BatchPayloadStepResult("result", message == null, message))
+        );
     }
 
     public static BatchResponse success(String batchId, List<BatchPayloadResponse> batchPayloadResponses) {
