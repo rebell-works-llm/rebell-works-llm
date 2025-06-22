@@ -5,6 +5,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -17,6 +18,9 @@ public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
 
+    @Value("${spring.mail.username}")
+    private String mailFrom;
+
     public EmailServiceImpl(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
@@ -27,7 +31,7 @@ public class EmailServiceImpl implements EmailService {
         message.setTo(to);
         message.setSubject(subject);
         message.setText(body);
-        message.setFrom("rebellworksllm@gmail.com");
+        message.setFrom("Rebell Works <" + mailFrom + ">");
 
         try {
             mailSender.send(message);
@@ -44,13 +48,14 @@ public class EmailServiceImpl implements EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
+            helper.setFrom("Rebell Works <" + mailFrom + ">");
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlBody, true);
 
             mailSender.send(message);
             logger.info("HTML e-mail succesvol verzonden");
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             logger.error("Fout bij verzenden html e-mail, error: {}", e.getMessage(), e);
             throw new EmailException("Fout bij verzenden HTML e-mail: " + e.getMessage(), e);
         }

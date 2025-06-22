@@ -43,7 +43,7 @@ public class HubSpotWebhookService {
     private final VacancyNotificationAdapter vacancyNotificationAdapter;
     private final MatchMessageRepository matchMessageRepository;
 
-    @Value("${mail.to}")
+    @Value("${mail.to.student-matched}")
     private String mailTo;
 
     public HubSpotWebhookService(StudentJobMatchEngine matchEngine,
