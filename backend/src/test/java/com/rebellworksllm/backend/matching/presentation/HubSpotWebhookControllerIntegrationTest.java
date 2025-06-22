@@ -1,7 +1,7 @@
 package com.rebellworksllm.backend.matching.presentation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rebellworksllm.backend.matching.application.HubSpotWebhookService;
+import com.rebellworksllm.backend.modules.matching.application.HubSpotWebhookService;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

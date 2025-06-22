@@ -1,6 +1,7 @@
 package com.rebellworksllm.backend.hubspot.application;
 
-import com.rebellworksllm.backend.hubspot.application.dto.StudentContact;
+import com.rebellworksllm.backend.modules.hubspot.application.HubSpotStudentProvider;
+import com.rebellworksllm.backend.modules.hubspot.application.dto.StudentContact;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

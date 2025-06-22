@@ -1,7 +1,7 @@
 package com.rebellworksllm.backend.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rebellworksllm.backend.hubspot.config.HubSpotCredentials;
+import com.rebellworksllm.backend.modules.hubspot.config.HubSpotCredentials;
 import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
