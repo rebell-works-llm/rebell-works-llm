@@ -1,6 +1,7 @@
 package com.rebellworksllm.backend.modules.matching.application;
 
 import com.rebellworksllm.backend.modules.matching.domain.Vacancy;
+import com.rebellworksllm.backend.modules.vacancies.application.dto.VacancyResponseDto;
 import com.rebellworksllm.backend.modules.whatsapp.domain.WhatsAppService;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -25,9 +26,15 @@ public class VacancyNotificationAdapter {
         whatsAppService.sendTemplateMessage(phoneNumber, "rebell_template", "nl", parameters);
     }
 
-//    public void sendExtraVacancies(String phoneNumber, Vacancy vac3, Vacancy vac4){
-//        List<String> parameters = templateTwo.generateVacancyTemplateParams()>
-//    }
+    public void sendExtraVacancies(String phoneNumber, Vacancy vac3, Vacancy vac4){
+
+        Vacancy vacancy3 = new Vacancy(vac3.id(), vac3.title(), vac3.description(), vac3.salary(), vac3.workingHours(), vac3.function());
+        Vacancy vacancy4 = new Vacancy(vac4.id(), vac4.title(), vac4.description(), vac4.salary(), vac4.workingHours(), vac4.function());
+
+
+        List<String> parameters = templateTwo.generateVacancyTemplateParams("Student", vacancy3, vacancy4);
+        whatsAppService.sendTemplateMessage(phoneNumber, "rebell_template2", "nl", parameters);
+    }
 
 
 }

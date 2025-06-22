@@ -5,6 +5,7 @@ import com.rebellworksllm.backend.modules.hubspot.application.dto.StudentContact
 import com.rebellworksllm.backend.modules.matching.application.util.MatchingUtils;
 import com.rebellworksllm.backend.modules.matching.data.MatchMessageRepository;
 import com.rebellworksllm.backend.modules.matching.data.dto.MatchMessageResponse;
+import com.rebellworksllm.backend.modules.matching.domain.Vacancy;
 import com.rebellworksllm.backend.modules.vacancies.application.VacancyProvider;
 import com.rebellworksllm.backend.modules.vacancies.application.dto.VacancyResponseDto;
 import com.rebellworksllm.backend.modules.whatsapp.application.dto.ContactResponseMessage;
@@ -17,10 +18,16 @@ public class MoreVacanciesHandlerServiceImpl implements StudentInterestHandlerSe
     private final MatchMessageRepository matchMessageRepository;
     private final VacancyProvider vacancyProvider;
 
-    public MoreVacanciesHandlerServiceImpl(HubSpotStudentProvider studentProvider, MatchMessageRepository matchMessageRepository, VacancyProvider vacancyProvider) {
+    private final VacancyNotificationAdapter vacancyNotificationAdapter;
+
+    public MoreVacanciesHandlerServiceImpl(HubSpotStudentProvider studentProvider,
+                                           MatchMessageRepository matchMessageRepository,
+                                           VacancyProvider vacancyProvider,
+                                           VacancyNotificationAdapter vacancyNotificationAdapter) {
         this.studentProvider = studentProvider;
         this.matchMessageRepository = matchMessageRepository;
         this.vacancyProvider = vacancyProvider;
+        this.vacancyNotificationAdapter = vacancyNotificationAdapter;
     }
 
     @Override
@@ -33,10 +40,13 @@ public class MoreVacanciesHandlerServiceImpl implements StudentInterestHandlerSe
         String vacancy3Id = matchMessageResponse.vacancyIds().get(2);
         String vacancy4Id = matchMessageResponse.vacancyIds().get(3);
 
-        VacancyResponseDto vacancy3 = vacancyProvider.getVacancyById(vacancy3Id);
-        VacancyResponseDto vacancy4 = vacancyProvider.getVacancyById(vacancy4Id);
+        VacancyResponseDto vac3 = vacancyProvider.getVacancyById(vacancy3Id);
+        VacancyResponseDto vac4 = vacancyProvider.getVacancyById(vacancy4Id);
 
+        Vacancy vacancy3 = new Vacancy(vac3.id(), vac3.title(), vac3.description(), vac3.salary(), vac3.workingHours(), vac3.function());
+        Vacancy vacancy4 = new Vacancy(vac4.id(), vac4.title(), vac4.description(), vac4.salary(), vac4.workingHours(), vac4.function());
 
+        vacancyNotificationAdapter.sendExtraVacancies(studentContact.phoneNumber(), vacancy3, vacancy4);
 
     }
 }
