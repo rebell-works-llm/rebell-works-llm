@@ -9,15 +9,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
 public class WhatsAppWebhookService {
 
     private static final Logger logger = LoggerFactory.getLogger(WhatsAppWebhookService.class);
 
-    private final StudentInterestHandlerService studentInterestHandlerService;
+    private final Map<String, StudentInterestHandlerService> handlerServices;
 
-    public WhatsAppWebhookService(StudentInterestHandlerService studentInterestHandlerService) {
-        this.studentInterestHandlerService = studentInterestHandlerService;
+    public WhatsAppWebhookService(Map<String, StudentInterestHandlerService> handlerServices) {
+        this.handlerServices = handlerServices;
     }
 
     public void processWebhook(JsonNode payload) {
@@ -66,9 +68,15 @@ public class WhatsAppWebhookService {
             String payload = msg.path("button").path("payload").asText(null);
             String btnText = msg.path("button").path("text").asText(null);
             logger.info("BUTTON from {} ({}): payload={}, text={}", contactName, LogUtils.maskPhone(from), payload, btnText);
-            logger.info("poep");
 
-            studentInterestHandlerService.handleReply(new ContactResponseMessage(from, btnText));
+            ContactResponseMessage message = new ContactResponseMessage(from, btnText);
+
+            if ("Meer vacatures".equalsIgnoreCase(btnText)) {
+                handlerServices.get("extraVacancyHandler").handleReply(message);
+            } else {
+                handlerServices.get("mailHandler").handleReply(message);
+            }
+
         }
     }
 }

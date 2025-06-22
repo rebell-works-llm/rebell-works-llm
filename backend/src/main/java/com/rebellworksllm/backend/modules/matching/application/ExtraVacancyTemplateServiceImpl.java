@@ -10,34 +10,27 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@Qualifier("templateOne")
-public class TemplateServiceImpl implements TemplateService {
+@Qualifier("templateTwo")
+public class ExtraVacancyTemplateServiceImpl implements TemplateService {
 
     private static final Logger logger = LoggerFactory.getLogger(TemplateServiceImpl.class);
 
     @Override
-    public List<String> generateVacancyTemplateParams(String candidateName, Vacancy vac1, Vacancy vac2) {
-        String candidateInfo = candidateName != null ? candidateName : "Unknown candidate";
-        logger.info("Generating vacancy template for candidate: {}", candidateInfo);
+    public List<String> generateVacancyTemplateParams(String candidateName, Vacancy vac3, Vacancy vac4) {
 
         try {
             List<String> templateContent = List.of(
-                    check(candidateName),
-                    check(vac1.title()), check(vac1.description()), check(vac1.workingHours()),
-                    check(vac1.salary()), check(vac1.function()),
-                    check(vac2.title()), check(vac2.description()), check(vac2.workingHours()),
-                    check(vac2.salary()), check(vac2.function())
+                    check(vac3.title()), check(vac3.description()), check(vac3.workingHours()),
+                    check(vac3.salary()), check(vac3.function()),
+                    check(vac4.title()), check(vac4.description()), check(vac4.workingHours()),
+                    check(vac4.salary()), check(vac4.function())
             );
-
-            logger.info("Successfully generated vacancy template for candidate: {}", candidateInfo);
             return templateContent;
         } catch (Exception ex) {
             logger.error("Error generating vacancy template: {}", ex.getMessage(), ex);
             throw new TemplateException("Error generating vacancy template: " + ex.getMessage(), ex);
         }
     }
-
-
 
     private String check(String input) {
         return (input == null || input.trim().isEmpty())
