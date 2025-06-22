@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class WhatsAppWebhookService {
@@ -17,6 +19,8 @@ public class WhatsAppWebhookService {
     private static final Logger logger = LoggerFactory.getLogger(WhatsAppWebhookService.class);
 
     private final Map<String, StudentInterestHandlerService> handlerServices;
+
+    private final Set<String> processedMessageIds = ConcurrentHashMap.newKeySet();
 
     public WhatsAppWebhookService(Map<String, StudentInterestHandlerService> handlerServices) {
         this.handlerServices = handlerServices;
@@ -63,6 +67,11 @@ public class WhatsAppWebhookService {
         String msgType = msg.path("type").asText();
         String from = msg.path("from").asText();
         String logId = msg.path("id").asText();
+
+        if (!processedMessageIds.add(logId)) {
+            logger.warn("Duplicate message ignored with ID: {}", logId);
+            return;
+        }
 
         if (msgType.equals("button")) {
             String payload = msg.path("button").path("payload").asText(null);

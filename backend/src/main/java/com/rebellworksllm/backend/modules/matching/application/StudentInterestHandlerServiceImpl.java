@@ -60,6 +60,10 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
         String vacancyId = matchMessageResponse.vacancyIds().get(0);
         if (responseMessage.message().endsWith("2")) {
             vacancyId = matchMessageResponse.vacancyIds().get(1);
+        } else if(responseMessage.message().endsWith("3")){
+            vacancyId = matchMessageResponse.vacancyIds().get(2);
+        } else if (responseMessage.message().endsWith("4")){
+            vacancyId = matchMessageResponse.vacancyIds().get(3);
         }
 
         VacancyResponseDto vacancy = vacancyProvider.getVacancyById(vacancyId);
