@@ -68,10 +68,6 @@ public class WhatsAppWebhookService {
         String from = msg.path("from").asText();
         String logId = msg.path("id").asText();
 
-        if (!processedMessageIds.add(logId)) {
-            logger.warn("Duplicate message ignored with ID: {}", logId);
-            return;
-        }
 
         if (msgType.equals("button")) {
             String payload = msg.path("button").path("payload").asText(null);
