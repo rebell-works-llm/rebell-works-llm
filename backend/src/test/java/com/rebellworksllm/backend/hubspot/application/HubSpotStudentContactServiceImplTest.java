@@ -1,8 +1,10 @@
 package com.rebellworksllm.backend.hubspot.application;
 
-import com.rebellworksllm.backend.hubspot.application.dto.StudentContact;
-import com.rebellworksllm.backend.hubspot.config.HubSpotCredentials;
-import com.rebellworksllm.backend.hubspot.data.HubSpotStudentService;
+import com.rebellworksllm.backend.modules.hubspot.application.HubSpotStudentProvider;
+import com.rebellworksllm.backend.modules.hubspot.application.HubSpotStudentProviderService;
+import com.rebellworksllm.backend.modules.hubspot.application.dto.StudentContact;
+import com.rebellworksllm.backend.modules.hubspot.config.HubSpotCredentials;
+import com.rebellworksllm.backend.modules.hubspot.data.HubSpotStudentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;

@@ -1,8 +1,8 @@
 package com.rebellworksllm.backend.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rebellworksllm.backend.hubspot.config.HubSpotCredentials;
-import com.rebellworksllm.backend.matching.presentation.dto.ErrorResponse;
+import com.rebellworksllm.backend.modules.hubspot.config.HubSpotCredentials;
+import com.rebellworksllm.backend.modules.matching.presentation.dto.ErrorResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

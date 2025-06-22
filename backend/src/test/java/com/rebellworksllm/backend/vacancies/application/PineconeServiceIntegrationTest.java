@@ -1,10 +1,10 @@
 package com.rebellworksllm.backend.vacancies.application;
 
-import com.rebellworksllm.backend.matching.domain.Student;
-import com.rebellworksllm.backend.openai.domain.EmbeddingResult;
-import com.rebellworksllm.backend.vacancies.application.dto.MatchedVacancy;
-import com.rebellworksllm.backend.vacancies.application.dto.VacancyResponseDto;
-import com.rebellworksllm.backend.vacancies.data.PineconeService;
+import com.rebellworksllm.backend.modules.matching.domain.Student;
+import com.rebellworksllm.backend.modules.openai.domain.EmbeddingResult;
+import com.rebellworksllm.backend.modules.vacancies.application.dto.MatchedVacancy;
+import com.rebellworksllm.backend.modules.vacancies.application.dto.VacancyResponseDto;
+import com.rebellworksllm.backend.modules.vacancies.data.PineconeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

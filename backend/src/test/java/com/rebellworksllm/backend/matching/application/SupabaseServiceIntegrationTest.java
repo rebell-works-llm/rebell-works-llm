@@ -1,7 +1,7 @@
 package com.rebellworksllm.backend.matching.application;
 
-import com.rebellworksllm.backend.vacancies.data.SupabaseResponse;
-import com.rebellworksllm.backend.vacancies.data.SupabaseService;
+import com.rebellworksllm.backend.modules.vacancies.data.SupabaseResponse;
+import com.rebellworksllm.backend.modules.vacancies.data.SupabaseService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
