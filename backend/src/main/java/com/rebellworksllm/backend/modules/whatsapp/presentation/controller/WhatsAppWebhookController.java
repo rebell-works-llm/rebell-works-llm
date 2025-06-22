@@ -1,5 +1,6 @@
 package com.rebellworksllm.backend.modules.whatsapp.presentation.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rebellworksllm.backend.modules.whatsapp.application.WhatsAppWebhookService;
 import com.rebellworksllm.backend.modules.whatsapp.config.WhatsAppCredentials;
 import com.rebellworksllm.backend.modules.whatsapp.presentation.dto.WebhookPayload;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 public class WhatsAppWebhookController {
 
     private static final Logger logger = LoggerFactory.getLogger(WhatsAppWebhookController.class);
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     private final WhatsAppCredentials whatsAppCredentials;
     private final WhatsAppWebhookService whatsAppWebhookService;
@@ -39,6 +41,8 @@ public class WhatsAppWebhookController {
     @PostMapping
     public ResponseEntity<Void> receive(@RequestBody WebhookPayload payload) {
         logger.info("Received webhook payload for object: {}", payload.object());
+        logger.info("First entry: {}", payload.entry().getFirst());
+
         whatsAppWebhookService.processWebhook(payload);
         return ResponseEntity.ok().build();
     }
