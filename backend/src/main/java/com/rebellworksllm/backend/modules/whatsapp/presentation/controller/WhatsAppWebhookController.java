@@ -1,9 +1,10 @@
 package com.rebellworksllm.backend.modules.whatsapp.presentation.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rebellworksllm.backend.modules.whatsapp.application.WhatsAppWebhookService;
+import com.rebellworksllm.backend.modules.whatsapp.application.exception.MissingPayloadFieldException;
 import com.rebellworksllm.backend.modules.whatsapp.config.WhatsAppCredentials;
-import com.rebellworksllm.backend.modules.whatsapp.presentation.dto.WebhookPayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -39,11 +40,18 @@ public class WhatsAppWebhookController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> receive(@RequestBody WebhookPayload payload) {
-        logger.info("Received webhook payload for object: {}", payload.object());
-        logger.info("First entry: {}", payload.entry().getFirst());
+    public ResponseEntity<String> receive(@RequestBody JsonNode payload) {
+        try {
+            logger.info("Received WhatsApp webhook (raw): {}", payload);
 
-        whatsAppWebhookService.processWebhook(payload);
-        return ResponseEntity.ok().build();
+            whatsAppWebhookService.processWebhook(payload);
+
+            return ResponseEntity.ok().build();
+        } catch (MissingPayloadFieldException e) {
+            logger.error("Failed to process WhatsApp webhook: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to process webhook: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to process webhook: " + e.getMessage());
+        }
     }
 }
