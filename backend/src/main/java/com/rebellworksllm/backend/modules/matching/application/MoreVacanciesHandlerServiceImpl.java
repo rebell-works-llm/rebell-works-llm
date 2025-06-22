@@ -49,6 +49,7 @@ public class MoreVacanciesHandlerServiceImpl implements StudentInterestHandlerSe
         VacancyResponseDto vac4 = vacancyProvider.getVacancyById(vacancy4Id);
 
         logger.info("poep1 {}", vac4);
+        logger.info("VacatureDTO4 {}", vac4 );
 
 
         vacancyNotificationAdapter.sendExtraVacancies(studentContact.phoneNumber(), vac3, vac4);

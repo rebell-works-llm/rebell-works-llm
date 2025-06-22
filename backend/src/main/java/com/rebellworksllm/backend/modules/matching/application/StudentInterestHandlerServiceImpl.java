@@ -54,6 +54,7 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
         }
 
         VacancyResponseDto vacancy = vacancyProvider.getVacancyById(vacancyId);
+        logger.info("poep3 {}", vacancy);
         System.out.println(vacancy);
 
         String plainBody = """
