@@ -17,6 +17,9 @@ public class OpenAICredentials {
     @NotBlank
     private String embeddingModel;
 
+    @NotBlank
+    private String completionModel;
+
     public String getApiKey() {
         return apiKey;
     }
@@ -39,5 +42,13 @@ public class OpenAICredentials {
 
     public void setEmbeddingModel(@NotBlank String embeddingModel) {
         this.embeddingModel = embeddingModel;
+    }
+
+    public @NotBlank String getCompletionModel() {
+        return completionModel;
+    }
+
+    public void setCompletionModel(@NotBlank String completionModel) {
+        this.completionModel = completionModel;
     }
 }

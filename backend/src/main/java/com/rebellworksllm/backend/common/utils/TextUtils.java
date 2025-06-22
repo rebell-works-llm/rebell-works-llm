@@ -21,4 +21,20 @@ public class TextUtils {
 
         return StringEscapeUtils.escapeJson(cleaned);
     }
+
+    public static String sanitize(String input, int maxLength) {
+        if (input == null) return "Unknown";
+        String safe = input.trim();
+        // Escape HTML and common injection vectors
+        safe = StringEscapeUtils.escapeHtml4(safe);
+        // Remove non-latin (replace with "")
+        safe = safe.replaceAll("[^\\p{IsLatin}\\p{IsDigit}\\p{Punct}\\s]", "");
+        // Collapse whitespace
+        safe = safe.replaceAll("\\s+", " ");
+        // Cap length
+        if (safe.length() > maxLength) {
+            safe = safe.substring(0, maxLength - 3) + "...";
+        }
+        return safe.isBlank() ? "Unknown" : safe;
+    }
 }

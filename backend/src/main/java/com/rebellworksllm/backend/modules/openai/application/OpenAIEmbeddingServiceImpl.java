@@ -4,8 +4,7 @@ import com.rebellworksllm.backend.modules.openai.application.dto.EmbeddingReques
 import com.rebellworksllm.backend.modules.openai.application.dto.EmbeddingResponse;
 import com.rebellworksllm.backend.modules.openai.application.exception.OpenAIEmbeddingException;
 import com.rebellworksllm.backend.modules.openai.config.OpenAICredentials;
-import com.rebellworksllm.backend.modules.openai.domain.EmbeddingResult;
-import com.rebellworksllm.backend.modules.openai.domain.OpenAIEmbeddingService;
+import com.rebellworksllm.backend.modules.openai.application.dto.EmbeddingResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
