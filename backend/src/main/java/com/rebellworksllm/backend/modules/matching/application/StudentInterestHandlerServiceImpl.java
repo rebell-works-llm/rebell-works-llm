@@ -79,6 +79,7 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
                 vacancy.link()
         );
         emailService.send(mailTo, "New Student Interest", plainBody);
+
         logger.info("Email successfully sent to: {}", LogUtils.maskEmail(mailTo));
     }
 }
