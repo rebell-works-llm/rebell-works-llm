@@ -42,6 +42,7 @@ public class VacancyNotificationAdapter {
     }
 
     public void notifyInterestedCanidate(String phoneNumber){
+        logger.info("poep8");
         whatsAppService.sendTemplateMessage(phoneNumber, "rebell_template3", "nl", null);
     }
 
