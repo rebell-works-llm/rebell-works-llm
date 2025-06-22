@@ -7,6 +7,7 @@ import com.rebellworksllm.backend.modules.whatsapp.application.dto.ContactRespon
 import com.rebellworksllm.backend.modules.whatsapp.application.exception.MissingPayloadFieldException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -49,6 +50,11 @@ public class WhatsAppWebhookService {
         }
     }
 
+    @Async
+    public void processWebhookAsync(JsonNode payload) {
+        processWebhook(payload);
+    }
+
     private void processMessages(JsonNode value) {
         JsonNode contacts = value.path("contacts");
         String contactName = contacts.isArray() && !contacts.isEmpty()
@@ -68,6 +74,10 @@ public class WhatsAppWebhookService {
         String from = msg.path("from").asText();
         String logId = msg.path("id").asText();
 
+        if (!processedMessageIds.add(logId)) {
+            logger.warn("Duplicate message ignored with ID: {}", logId);
+            return;
+        }
 
         if (msgType.equals("button")) {
             String payload = msg.path("button").path("payload").asText(null);

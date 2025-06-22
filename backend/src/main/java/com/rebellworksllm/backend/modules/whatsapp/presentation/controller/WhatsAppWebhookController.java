@@ -44,7 +44,7 @@ public class WhatsAppWebhookController {
         try {
             logger.info("Received WhatsApp webhook (raw): {}", payload);
 
-            whatsAppWebhookService.processWebhook(payload);
+            whatsAppWebhookService.processWebhookAsync(payload);
 
             return ResponseEntity.ok().build();
         } catch (MissingPayloadFieldException e) {

@@ -51,7 +51,7 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
 
         vacancyNotificationAdapter.notifyInterestedCanidate(studentContact.phoneNumber());
 
-        logger.info("poep7");
+
 
         String normalizedPhone = MatchingUtils.normalizePhone(responseMessage.contactPhone());
         MatchMessageResponse matchMessageResponse = matchMessageRepository.findByContactPhone(normalizedPhone);
