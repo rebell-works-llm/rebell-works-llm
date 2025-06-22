@@ -20,4 +20,5 @@ public class VacancyNotificationAdapter {
         List<String> parameters = templateService.generateVacancyTemplateParams(name, vac1, vac2);
         whatsAppService.sendTemplateMessage(phoneNumber, "rebell_template", "nl", parameters);
     }
+
 }

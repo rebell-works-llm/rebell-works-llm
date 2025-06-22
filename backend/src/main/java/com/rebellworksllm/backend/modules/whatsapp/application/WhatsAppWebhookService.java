@@ -66,6 +66,7 @@ public class WhatsAppWebhookService {
             String payload = msg.path("button").path("payload").asText(null);
             String btnText = msg.path("button").path("text").asText(null);
             logger.info("BUTTON from {} ({}): payload={}, text={}", contactName, LogUtils.maskPhone(from), payload, btnText);
+            logger.info("poep");
 
             studentInterestHandlerService.handleReply(new ContactResponseMessage(from, btnText));
         }
