@@ -32,6 +32,7 @@ public class VacancyService implements VacancyProvider {
         SupabaseResponse response = supabaseService.getVacancyById(id);
         Vacancy vacancy = new VacancyBuilder(response.id())
                 .title(response.title())
+                .description(response.description())
                 .priority(response.priority())
                 .matchCount(response.matchCount())
                 .link(response.link())
