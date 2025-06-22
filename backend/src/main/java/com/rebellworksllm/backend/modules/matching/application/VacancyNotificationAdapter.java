@@ -34,6 +34,7 @@ public class VacancyNotificationAdapter {
         Vacancy vacancy3 = new Vacancy(vac3.id(), vac3.title(), vac3.description(), vac3.salary(), vac3.workingHours(), vac3.function());
         Vacancy vacancy4 = new Vacancy(vac4.id(), vac4.title(), vac4.description(), vac4.salary(), vac4.workingHours(), vac4.function());
 
+        logger.info("vacancy 4 niet omgezet {}", vac4);
         logger.info("vacancy 4 {}", vacancy4);
 
         List<String> parameters = templateTwo.generateVacancyTemplateParams("Student", vacancy3, vacancy4);
