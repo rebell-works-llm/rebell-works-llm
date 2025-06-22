@@ -1,7 +1,9 @@
 package com.rebellworksllm.backend.modules.whatsapp.application;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.rebellworksllm.backend.common.utils.LogUtils;
 import com.rebellworksllm.backend.modules.matching.application.StudentInterestHandlerService;
+import com.rebellworksllm.backend.modules.whatsapp.application.dto.ContactResponseMessage;
 import com.rebellworksllm.backend.modules.whatsapp.application.exception.MissingPayloadFieldException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,12 +33,12 @@ public class WhatsAppWebhookService {
                 String field = change.path("field").asText();
                 JsonNode value = change.path("value");
 
-                if (field.equals("messages")) {
-                    logger.info("Dynamically processing 'messages' payload");
-                    processMessages(value);
+                if (!field.equals("messages")) {
+                    logger.warn("Unknown field '{}' with value: {}", field, value);
                 }
 
-                logger.warn("Unknown field '{}' with value: {}", field, value);
+                logger.info("Dynamically processing 'messages' payload");
+                processMessages(value);
             }
         }
     }
@@ -63,7 +65,9 @@ public class WhatsAppWebhookService {
         if (msgType.equals("button")) {
             String payload = msg.path("button").path("payload").asText(null);
             String btnText = msg.path("button").path("text").asText(null);
-            logger.info("BUTTON from {} ({}): payload={}, text={}", contactName, from, payload, btnText);
+            logger.info("BUTTON from {} ({}): payload={}, text={}", contactName, LogUtils.maskPhone(from), payload, btnText);
+
+            studentInterestHandlerService.handleReply(new ContactResponseMessage(from, btnText));
         }
     }
 }
