@@ -44,9 +44,12 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
 
     @Override
     public void handleReply(ContactResponseMessage responseMessage) {
+
+
         StudentContact studentContact = studentProvider.getStudentByPhone(responseMessage.contactPhone());
         logger.info("Interested student found: {}", studentContact.fullName());
 
+        vacancyNotificationAdapter.notifyInterestedCanidate(studentContact.phoneNumber());
         String normalizedPhone = MatchingUtils.normalizePhone(responseMessage.contactPhone());
         MatchMessageResponse matchMessageResponse = matchMessageRepository.findByContactPhone(normalizedPhone);
         logger.info("Match message found for student: {}", studentContact.fullName());
@@ -82,7 +85,7 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
                 vacancy.link()
         );
         emailService.send(mailTo, "New Student Interest", plainBody);
-        vacancyNotificationAdapter.notifyInterestedCanidate(studentContact.phoneNumber());
+
 
         logger.info("Email successfully sent to: {}", LogUtils.maskEmail(mailTo));
     }
