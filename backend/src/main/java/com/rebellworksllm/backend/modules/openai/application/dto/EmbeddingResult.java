@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.modules.openai.domain;
+package com.rebellworksllm.backend.modules.openai.application.dto;
 
 import java.util.List;
 

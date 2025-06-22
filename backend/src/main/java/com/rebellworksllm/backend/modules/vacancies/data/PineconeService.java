@@ -1,7 +1,7 @@
 package com.rebellworksllm.backend.modules.vacancies.data;
 
 import com.rebellworksllm.backend.modules.matching.application.exception.MatchingException;
-import com.rebellworksllm.backend.modules.openai.domain.EmbeddingResult;
+import com.rebellworksllm.backend.modules.openai.application.dto.EmbeddingResult;
 import com.rebellworksllm.backend.modules.vacancies.application.dto.MatchedVacancy;
 import com.rebellworksllm.backend.modules.vacancies.application.dto.VacancyResponseDto;
 import org.slf4j.Logger;

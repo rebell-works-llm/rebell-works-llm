@@ -1,7 +1,7 @@
 package com.rebellworksllm.backend.vacancies.application;
 
 import com.rebellworksllm.backend.modules.matching.domain.Student;
-import com.rebellworksllm.backend.modules.openai.domain.EmbeddingResult;
+import com.rebellworksllm.backend.modules.openai.application.dto.EmbeddingResult;
 import com.rebellworksllm.backend.modules.vacancies.application.dto.MatchedVacancy;
 import com.rebellworksllm.backend.modules.vacancies.application.dto.VacancyResponseDto;
 import com.rebellworksllm.backend.modules.vacancies.data.PineconeService;
