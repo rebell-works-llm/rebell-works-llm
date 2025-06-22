@@ -87,9 +87,13 @@ public class HubSpotWebhookService {
         final String correlationId = UUID.randomUUID().toString();
         MDC.put("correlationId", correlationId);
 
+        StringBuilder statusMsg = new StringBuilder();
+        boolean success = true;
+
         try {
             logger.info("Processing webhook for objectId: {}", id);
 
+            // 1. HubSpot Student
             Student student = findStudent(id);
             List<StudentVacancyMatch> matches = matchEngine.query(student, FIRST_MATCH_LIMIT);
 
@@ -98,12 +102,40 @@ public class HubSpotWebhookService {
                 throw new InsufficientMatchesException("Insufficient vacancy matches found for student: " + id);
             }
 
-            sendVacancyNotifications(student, matches);
-            persistMatchMessages(student, matches);
-            sendAdminNotificationEmail(student);
+            // 2. WhatsApp
+            try {
+                sendVacancyNotifications(student, matches);
+            } catch (Exception e) {
+                logger.error("WhatsApp notification failed for {}: {}", student.name(), e.getMessage(), e);
+                statusMsg.append("WhatsApp failed: ").append(e.getMessage()).append("; ");
+                success = false;
+            }
 
-            logger.info("Processed webhook successfully for objectId: {}", id);
-            return new BatchResponse.BatchPayloadResponse(id, "Student matched successfully");
+            // 3. Persist match
+            try {
+                persistMatchMessages(student, matches);
+            } catch (Exception e) {
+                logger.error("Persisting match message failed for {}: {}", student.name(), e.getMessage(), e);
+                statusMsg.append("Persist failed: ").append(e.getMessage()).append("; ");
+                success = false;
+            }
+
+            // 4. Admin mail
+            try {
+                sendAdminNotificationEmail(student);
+            } catch (Exception e) {
+                logger.error("Admin email failed for {}: {}", student.name(), e.getMessage(), e);
+                statusMsg.append("Admin mail failed: ").append(e.getMessage()).append("; ");
+                success = false;
+            }
+
+            if (success) {
+                logger.info("Processed webhook successfully for objectId: {}", id);
+                return new BatchResponse.BatchPayloadResponse(id, "Student matched and notified successfully");
+            } else {
+                logger.warn("Processed webhook with issues for objectId: {}: {}", id, statusMsg);
+                return new BatchResponse.BatchPayloadResponse(id, statusMsg.toString());
+            }
         } catch (Exception ex) {
             logger.error("Failed to process webhook - objectId: {}, error: {}", id, ex.getMessage(), ex);
             return new BatchResponse.BatchPayloadResponse(id, ex.getMessage());
