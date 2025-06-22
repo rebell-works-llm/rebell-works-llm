@@ -24,8 +24,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-import static com.rebellworksllm.backend.matching.application.util.LogUtils.maskEmail;
-import static com.rebellworksllm.backend.matching.application.util.LogUtils.maskPhone;
+import static com.rebellworksllm.backend.common.utils.LogUtils.maskEmail;
+import static com.rebellworksllm.backend.common.utils.LogUtils.maskPhone;
 
 @Service
 public class HubSpotWebhookService {
@@ -61,84 +61,59 @@ public class HubSpotWebhookService {
     }
 
     public BatchResponse processBatch(List<HubSpotWebhooksBatchResponse.HubSpotWebhooksPayload> payloads) {
+        logger.info("Starting batch processing of {} payload(s)", payloads.size());
 
         // Launch each item in parallel
         List<CompletableFuture<BatchResponse.BatchPayloadResponse>> futures = payloads.stream()
                 .map(payload ->
                         CompletableFuture.supplyAsync(() -> processStudentMatch(payload.objectId()), jobMatchingExecutor)
                                 .exceptionally(ex -> {
-                                    logger.error("Error processing objectId={}: {}", payload.objectId(), ex.getMessage(), ex);
+                                    logger.error("Batch error for objectId={}: {}", payload.objectId(), ex.getMessage(), ex);
                                     return new BatchResponse.BatchPayloadResponse(payload.objectId(), "Failed: " + ex.getMessage());
                                 })
                 )
                 .toList();
 
-        // Wait for all tasks to finish
-        CompletableFuture<Void> allDone = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-
-        // Collect results (blocking here until all are done, still async up to this point!)
-        List<BatchResponse.BatchPayloadResponse> results = allDone.thenApply(v ->
-                futures.stream().map(CompletableFuture::join).toList()
-        ).join();
+        // Wait for all tasks and collect results
+        List<BatchResponse.BatchPayloadResponse> results = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> futures.stream().map(CompletableFuture::join).toList())
+                .join();
 
         logger.info("Completed batch processing for {} payload(s)", results.size());
         return BatchResponse.success("Batch processed", results);
     }
 
     public BatchResponse.BatchPayloadResponse processStudentMatch(long id) {
-        String correlationId = UUID.randomUUID().toString();
+        final String correlationId = UUID.randomUUID().toString();
         MDC.put("correlationId", correlationId);
-        logger.info("Processing webhook - objectId: {}", id);
 
         try {
+            logger.info("Processing webhook for objectId: {}", id);
+
             Student student = findStudent(id);
             List<StudentVacancyMatch> matches = matchEngine.query(student, FIRST_MATCH_LIMIT);
 
             if (matches.size() < FIRST_MATCH_LIMIT) {
-                logger.warn("Insufficient matches found for student: {}, required: {}, found: {}", id, FIRST_MATCH_LIMIT, matches.size());
+                logger.warn("Insufficient matches for student {}: required={}, found={}", id, FIRST_MATCH_LIMIT, matches.size());
                 throw new InsufficientMatchesException("Insufficient vacancy matches found for student: " + id);
             }
 
-            try {
-                logger.info("Sending WhatsApp message to student: {}, phone: {}", id, maskPhone(student.phoneNumber()));
+            sendVacancyNotifications(student, matches);
+            persistMatchMessages(student, matches);
+            sendAdminNotificationEmail(student);
 
-                Vacancy vac1 = matches.get(0).vacancy();
-                Vacancy vac2 = matches.get(1).vacancy();
-                Vacancy vac3 = matches.get(1).vacancy();
-                Vacancy vac4 = matches.get(1).vacancy();
-                vacancyNotificationAdapter.notifyCandidate(
-                        student.phoneNumber(),
-                        student.name(),
-                        vac1,
-                        vac2
-                );
-
-                List<String> vacancyIds = List.of(vac1.id(), vac2.id(), vac3.id(), vac4.id());
-                String normalizedPhone = MatchingUtils.normalizePhone(student.phoneNumber());
-                matchMessageRepository.save(new MatchMessageRequest(vacancyIds, normalizedPhone));
-
-                sendAdminNotificationEmail(student);
-
-                logger.info("WhatsApp message sent successfully to student: {}, phone: {}", student.name(), maskPhone(student.phoneNumber()));
-                logger.debug("Successfully processed webhook for objectId: {}", id);
-            } catch (Exception e) {
-                logger.error("Failed to send WhatsApp message for student: {}, error: {}", student.name(), e.getMessage(), e);
-                throw new RuntimeException("Failed to send WhatsApp message: " + e.getMessage(), e);
-            }
+            logger.info("Processed webhook successfully for objectId: {}", id);
+            return new BatchResponse.BatchPayloadResponse(id, "Student matched successfully");
         } catch (Exception ex) {
             logger.error("Failed to process webhook - objectId: {}, error: {}", id, ex.getMessage(), ex);
             return new BatchResponse.BatchPayloadResponse(id, ex.getMessage());
+        } finally {
+            MDC.clear();
         }
-
-        MDC.clear();
-        return new BatchResponse.BatchPayloadResponse(id, "Student matched successfully");
     }
 
     private Student findStudent(long id) {
         StudentContact studentContact = studentProvider.getStudentById(id);
-        logger.debug("Fetched HubSpot student: {}", studentContact.fullName());
-
-        logger.debug("Embedding text for student: {}", studentContact.fullName());
         EmbeddingResult studentEmbeddingResult = embeddingService.embedText(studentContact.stringify());
 
         return new Student(
@@ -151,6 +126,19 @@ public class HubSpotWebhookService {
                 studentContact.studyLocation(),
                 studentEmbeddingResult
         );
+    }
+
+    private void sendVacancyNotifications(Student student, List<StudentVacancyMatch> matches) {
+        Vacancy vac1 = matches.get(0).vacancy();
+        Vacancy vac2 = matches.get(1).vacancy();
+        vacancyNotificationAdapter.notifyCandidate(student.phoneNumber(), student.name(), vac1, vac2);
+        logger.info("WhatsApp notification sent to student: {}, phone: {}", student.name(), maskPhone(student.phoneNumber()));
+    }
+
+    private void persistMatchMessages(Student student, List<StudentVacancyMatch> matches) {
+        List<String> vacancyIds = matches.stream().limit(4).map(m -> m.vacancy().id()).toList();
+        String normalizedPhone = MatchingUtils.normalizePhone(student.phoneNumber());
+        matchMessageRepository.save(new MatchMessageRequest(vacancyIds, normalizedPhone));
     }
 
     private void sendAdminNotificationEmail(Student student) {

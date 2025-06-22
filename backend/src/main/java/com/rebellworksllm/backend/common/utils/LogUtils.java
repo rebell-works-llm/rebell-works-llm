@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.matching.application.util;
+package com.rebellworksllm.backend.common.utils;
 
 public class LogUtils {
 

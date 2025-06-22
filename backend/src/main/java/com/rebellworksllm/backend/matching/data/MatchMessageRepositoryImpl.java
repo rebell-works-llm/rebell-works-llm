@@ -30,23 +30,19 @@ public class MatchMessageRepositoryImpl implements MatchMessageRepository {
 
     @Override
     public MatchMessageResponse save(MatchMessageRequest request) {
-        logger.debug("Creating new match message: {}", request);
+        logger.debug("Saving match message: {}", request);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Prefer", "return=representation");
+        HttpEntity<List<MatchMessageRequest>> entity = new HttpEntity<>(List.of(request), headers);
 
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Prefer", "return=representation");
-
-            HttpEntity<List<MatchMessageRequest>> entity = new HttpEntity<>(List.of(request), headers);
-
             ResponseEntity<MatchMessageResponse[]> response = restTemplate.postForEntity(
-                    "/rest/v1/messages",
-                    entity,
-                    MatchMessageResponse[].class
-            );
+                    "/rest/v1/messages", entity, MatchMessageResponse[].class);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                logger.error("Supabase API error for INSERT: status={}", response.getStatusCode());
+                logger.error("Supabase INSERT error: status={}, body={}", response.getStatusCode(), response.getBody());
                 throw new MatchingException("Supabase INSERT error: " + response.getStatusCode());
             }
 
@@ -55,31 +51,32 @@ public class MatchMessageRepositoryImpl implements MatchMessageRepository {
                     .orElseThrow(() -> new MatchingException("Insert did not return data."));
 
         } catch (Exception e) {
-            logger.error("Failed to insert match message: {}", e.getMessage(), e);
+            logger.error("Failed to save match message: {}", e.getMessage(), e);
             throw new MatchingException("Supabase insert failed: " + e.getMessage(), e);
         }
     }
 
     public MatchMessageResponse findByContactPhone(String contactPhone) {
-        logger.debug("Fetching match messages for phone: {}", contactPhone);
-        try {
-            String path = UriComponentsBuilder
-                    .fromPath("/rest/v1/messages")
-                    .queryParam("contactPhone", "eq." + contactPhone)
-                    .toUriString();
+        logger.debug("Fetching match message for phone: {}", contactPhone);
 
-            ResponseEntity<MatchMessageResponse[]> response =
-                    restTemplate.getForEntity(path, MatchMessageResponse[].class);
+        String path = UriComponentsBuilder
+                .fromPath("/rest/v1/messages")
+                .queryParam("contactPhone", "eq." + contactPhone)
+                .toUriString();
+
+        try {
+            ResponseEntity<MatchMessageResponse[]> response = restTemplate.getForEntity(
+                    path, MatchMessageResponse[].class);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                logger.error("Supabase API error for GET: status={}", response.getStatusCode());
+                logger.error("Supabase GET error: status={}, body={}", response.getStatusCode(), response.getBody());
                 throw new MatchingException("Supabase GET error: " + response.getStatusCode());
             }
 
             return Arrays.stream(response.getBody()).findFirst().orElse(null);
 
         } catch (Exception e) {
-            logger.error("Failed to fetch match messages: {}", e.getMessage(), e);
+            logger.error("Failed to fetch match message: {}", e.getMessage(), e);
             throw new MatchingException("Supabase fetch failed: " + e.getMessage(), e);
         }
     }
