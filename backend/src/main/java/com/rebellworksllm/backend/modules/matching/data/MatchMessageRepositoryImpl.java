@@ -1,5 +1,6 @@
 package com.rebellworksllm.backend.modules.matching.data;
 
+import com.rebellworksllm.backend.common.utils.LogUtils;
 import com.rebellworksllm.backend.modules.matching.application.exception.MatchingException;
 import com.rebellworksllm.backend.modules.matching.data.dto.MatchMessageRequest;
 import com.rebellworksllm.backend.modules.matching.data.dto.MatchMessageResponse;
@@ -57,7 +58,7 @@ public class MatchMessageRepositoryImpl implements MatchMessageRepository {
     }
 
     public MatchMessageResponse findByContactPhone(String contactPhone) {
-        logger.debug("Fetching match message for phone: {}", contactPhone);
+        logger.debug("Fetching match message for phone: {}", LogUtils.maskPhone(contactPhone));
 
         String path = UriComponentsBuilder
                 .fromPath("/rest/v1/messages")
