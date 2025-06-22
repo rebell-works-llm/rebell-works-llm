@@ -78,6 +78,34 @@
         <logger name="org.hibernate" level="WARN"/>
     </springProfile>
 
+    <!-- STAGING LOGGING -->
+    <springProfile name="staging">
+        <!-- Only show debug for your own code, rest is info/warn/error only -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_BACKEND_FILE"/>
+        </root>
+
+        <logger name="com.rebellworksllm.backend" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_BACKEND_FILE"/>
+        </logger>
+
+        <logger name="org.springframework.security" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_SECURITY_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <logger name="com.rebellworksllm.backend.security" level="DEBUG" additivity="false">
+            <appender-ref ref="ASYNC_SECURITY_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.apache" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+    </springProfile>
+
     <!-- DEVELOPMENT LOGGING -->
     <springProfile name="dev">
         <!-- Only show debug for your own code, rest is info/warn/error only -->
