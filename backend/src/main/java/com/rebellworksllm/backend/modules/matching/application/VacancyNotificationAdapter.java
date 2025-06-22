@@ -29,4 +29,5 @@ public class VacancyNotificationAdapter {
 //        List<String> parameters = templateTwo.generateVacancyTemplateParams()>
 //    }
 
+
 }
