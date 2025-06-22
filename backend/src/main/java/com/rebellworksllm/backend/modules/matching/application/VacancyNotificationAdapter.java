@@ -41,5 +41,9 @@ public class VacancyNotificationAdapter {
         whatsAppService.sendTemplateMessage(phoneNumber, "rebell_template2", "nl", parameters);
     }
 
+    public void notifyInterestedCanidate(String phoneNumber){
+        whatsAppService.sendTemplateMessage(phoneNumber, "rebell_template3", "nl", null);
+    }
+
 
 }

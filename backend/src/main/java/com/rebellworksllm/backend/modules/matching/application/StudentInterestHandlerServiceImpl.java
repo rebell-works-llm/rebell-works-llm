@@ -24,6 +24,7 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
     private final EmailService emailService;
     private final MatchMessageRepository matchMessageRepository;
     private final VacancyProvider vacancyProvider;
+    private final VacancyNotificationAdapter vacancyNotificationAdapter;
 
     @Value("${mail.to.student-interest}")
     private String mailTo;
@@ -31,12 +32,14 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
     public StudentInterestHandlerServiceImpl(HubSpotStudentProvider studentProvider,
                                              EmailService emailService,
                                              MatchMessageRepository matchMessageRepository,
-                                             VacancyProvider vacancyProvider
+                                             VacancyProvider vacancyProvider,
+                                             VacancyNotificationAdapter vacancyNotificationAdapter
     ) {
         this.studentProvider = studentProvider;
         this.emailService = emailService;
         this.matchMessageRepository = matchMessageRepository;
         this.vacancyProvider = vacancyProvider;
+        this.vacancyNotificationAdapter = vacancyNotificationAdapter;
     }
 
     @Override
@@ -79,6 +82,7 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
                 vacancy.link()
         );
         emailService.send(mailTo, "New Student Interest", plainBody);
+        vacancyNotificationAdapter.notifyInterestedCanidate(studentContact.phoneNumber());
 
         logger.info("Email successfully sent to: {}", LogUtils.maskEmail(mailTo));
     }
