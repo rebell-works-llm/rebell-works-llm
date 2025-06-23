@@ -20,12 +20,6 @@ public class HubSpotCredentials {
     @NotBlank
     private String clientSecret;
 
-    @NotBlank
-    private String testObject;
-
-    @NotBlank
-    private String testPhone;
-
     public @NotBlank String getApiKey() {
         return apiKey;
     }
@@ -54,24 +48,7 @@ public class HubSpotCredentials {
         return clientSecret;
     }
 
-
     public void setClientSecret(@NotBlank String clientSecret) {
         this.clientSecret = clientSecret;
-    }
-
-    public String getTestObject() {
-        return testObject;
-    }
-
-    public void setTestObject(String testObject) {
-        this.testObject = testObject;
-    }
-
-    public String getTestPhone() {
-        return testPhone;
-    }
-
-    public void setTestPhone(String testPhone) {
-        this.testPhone = testPhone;
     }
 }
