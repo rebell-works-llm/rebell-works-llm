@@ -70,6 +70,7 @@ public class WhatsAppWebhookService {
         }
     }
 
+
     private void processMessage(JsonNode msg, String contactName) {
         String msgType = msg.path("type").asText();
         String from = msg.path("from").asText();
