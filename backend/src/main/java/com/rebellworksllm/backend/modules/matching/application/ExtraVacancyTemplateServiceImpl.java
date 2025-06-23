@@ -15,14 +15,29 @@ public class ExtraVacancyTemplateServiceImpl implements TemplateService {
 
     private static final Logger logger = LoggerFactory.getLogger(TemplateServiceImpl.class);
 
+    private final OpenAIVacancySummaryService openAIVacancySummaryService;
+
+    public ExtraVacancyTemplateServiceImpl(OpenAIVacancySummaryService openAIVacancySummaryService) {
+        this.openAIVacancySummaryService = openAIVacancySummaryService;
+    }
+
     @Override
     public List<String> generateVacancyTemplateParams(String candidateName, Vacancy vac3, Vacancy vac4) {
 
+        logger.debug("Job 3 description: {}", vac3.description());
+        logger.debug("Job 4 description: {}", vac4.description());
+
+        String vac3GeneratedDescription = openAIVacancySummaryService.generateSummary(vac3.description());
+        String vac4GeneratedDescription = openAIVacancySummaryService.generateSummary(vac4.description());
+
+        logger.debug("Vacancy 3 generated description: {}", vac3GeneratedDescription);
+        logger.debug("Vacancy 4 generated description: {}", vac4GeneratedDescription);
+
         try {
             List<String> templateContent = List.of(
-                    check(vac3.title()), check(vac3.description()), check(vac3.workingHours()),
+                    check(vac3.title()), check(vac3GeneratedDescription), check(vac3.workingHours()),
                     check(vac3.salary()), check(vac3.function()),
-                    check(vac4.title()), check(vac4.description()), check(vac4.workingHours()),
+                    check(vac4.title()), check(vac4GeneratedDescription), check(vac4.workingHours()),
                     check(vac4.salary()), check(vac4.function())
             );
             return templateContent;
