@@ -23,6 +23,7 @@ public class WhatsAppWebhookService {
 
     private final Set<String> processedMessageIds = ConcurrentHashMap.newKeySet();
 
+
     public WhatsAppWebhookService(Map<String, StudentInterestHandlerService> handlerServices) {
         this.handlerServices = handlerServices;
     }
@@ -74,14 +75,21 @@ public class WhatsAppWebhookService {
         String from = msg.path("from").asText();
         String logId = msg.path("id").asText();
 
-        if (!processedMessageIds.add(logId)) {
-            logger.warn("Duplicate message ignored with ID: {}", logId);
-            return;
-        }
-
-        if (msgType.equals("button")) {
+        if ("button".equals(msgType)) {
             String payload = msg.path("button").path("payload").asText(null);
             String btnText = msg.path("button").path("text").asText(null);
+
+            if (payload == null && btnText == null) {
+                logger.warn("Button message without payload or text: {}", msg);
+                return;
+            }
+
+            String uniqueActionKey = from + "::" + (payload != null ? payload : btnText);
+            if (!processedMessageIds.add(uniqueActionKey)) {
+                logger.warn("Duplicate action ignored: {}", uniqueActionKey);
+                return;
+            }
+
             logger.info("BUTTON from {} ({}): payload={}, text={}", contactName, LogUtils.maskPhone(from), payload, btnText);
 
             ContactResponseMessage message = new ContactResponseMessage(from, btnText);
@@ -92,6 +100,8 @@ public class WhatsAppWebhookService {
                 handlerServices.get("mailHandler").handleReply(message);
             }
 
+        } else {
+            logger.info("Ignoring non-button message with ID {} and type {}", logId, msgType);
         }
     }
 }
