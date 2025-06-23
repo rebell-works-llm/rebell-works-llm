@@ -54,6 +54,7 @@ public class HubSpotCredentials {
         return clientSecret;
     }
 
+
     public void setClientSecret(@NotBlank String clientSecret) {
         this.clientSecret = clientSecret;
     }
