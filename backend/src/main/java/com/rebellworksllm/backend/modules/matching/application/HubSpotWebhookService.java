@@ -11,8 +11,8 @@ import com.rebellworksllm.backend.modules.matching.presentation.dto.HubSpotWebho
 import com.rebellworksllm.backend.modules.matching.domain.Student;
 import com.rebellworksllm.backend.modules.matching.domain.StudentVacancyMatch;
 import com.rebellworksllm.backend.modules.matching.domain.Vacancy;
-import com.rebellworksllm.backend.modules.openai.domain.EmbeddingResult;
-import com.rebellworksllm.backend.modules.openai.domain.OpenAIEmbeddingService;
+import com.rebellworksllm.backend.modules.openai.application.dto.EmbeddingResult;
+import com.rebellworksllm.backend.modules.openai.application.OpenAIEmbeddingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;

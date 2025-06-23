@@ -1,6 +1,6 @@
 package com.rebellworksllm.backend.modules.matching.domain;
 
-import com.rebellworksllm.backend.modules.openai.domain.EmbeddingResult;
+import com.rebellworksllm.backend.modules.openai.application.dto.EmbeddingResult;
 
 public record Student(
 
