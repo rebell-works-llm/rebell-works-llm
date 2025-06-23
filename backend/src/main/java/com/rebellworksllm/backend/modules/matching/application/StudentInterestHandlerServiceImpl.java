@@ -49,7 +49,7 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
         StudentContact studentContact = studentProvider.getStudentByPhone(responseMessage.contactPhone());
         logger.info("Interested student found: {}", studentContact.fullName());
 
-        vacancyNotificationAdapter.notifyInterestedCanidate(studentContact.phoneNumber());
+        vacancyNotificationAdapter.notifyInterestedCandidate(studentContact.phoneNumber(), responseMessage);
 
 
 

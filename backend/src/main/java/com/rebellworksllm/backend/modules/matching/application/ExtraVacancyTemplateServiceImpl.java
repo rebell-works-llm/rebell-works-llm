@@ -2,6 +2,7 @@ package com.rebellworksllm.backend.modules.matching.application;
 
 import com.rebellworksllm.backend.modules.matching.application.exception.TemplateException;
 import com.rebellworksllm.backend.modules.matching.domain.Vacancy;
+import com.rebellworksllm.backend.modules.whatsapp.application.dto.ContactResponseMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,7 +23,7 @@ public class ExtraVacancyTemplateServiceImpl implements TemplateService {
     }
 
     @Override
-    public List<String> generateVacancyTemplateParams(String candidateName, Vacancy vac3, Vacancy vac4) {
+    public List<String> generateVacancyTemplateParams(String candidateName, Vacancy vac3, Vacancy vac4, Vacancy vac5, Vacancy vac6, ContactResponseMessage responseMessage) {
 
         logger.debug("Job 3 description: {}", vac3.description());
         logger.debug("Job 4 description: {}", vac4.description());
