@@ -209,6 +209,7 @@ public class HubSpotWebhookService {
                 student.study(),
                 student.studyLocation(),
                 student.id()
+
         );
 
         emailService.send(mailTo, "Nieuwe student gematcht", emailBody);
