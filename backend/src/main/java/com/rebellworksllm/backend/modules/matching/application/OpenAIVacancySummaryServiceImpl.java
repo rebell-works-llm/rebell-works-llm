@@ -12,7 +12,7 @@ import java.util.Map;
 public class OpenAIVacancySummaryServiceImpl implements OpenAIVacancySummaryService {
 
     private static final Logger logger = LoggerFactory.getLogger(TemplateServiceImpl.class);
-    private static final int MAX_DESCRIPTION_LENGTH = 100;
+    private static final int MAX_DESCRIPTION_LENGTH = 200;
 
     private final OpenAICompletionService chatService;
 
