@@ -28,12 +28,20 @@ public class OpenAIVacancySummaryServiceImpl implements OpenAIVacancySummaryServ
 
         logger.info("Generating summary for vacancy with description length: {}", vacancyDescription.length());
 
-        String sanitizedDescription = TextUtils.sanitize(vacancyDescription, 800);
+        String sanitizedDescription = TextUtils.sanitize(vacancyDescription);
+        logger.debug("Sanitized description: {}", sanitizedDescription);
         String prompt = buildPrompt(sanitizedDescription);
+        logger.debug("Prompt: {}", prompt);
         String summary = chatService.complete(Map.of("system", "You are a helpful assistant.", "user", prompt));
+        logger.debug("AI generated summary: {}", summary);
 
-        String sanitizedSummary = TextUtils.sanitize(summary, MAX_DESCRIPTION_LENGTH);
-        return validateLength(sanitizedSummary);
+        String sanitizedSummary = TextUtils.sanitize(summary);
+        logger.debug("Sanitized AI summary: {}", sanitizedSummary);
+
+        String cappedSummary = TextUtils.capLength(sanitizedSummary, MAX_DESCRIPTION_LENGTH);
+        logger.debug("Capped summary: {}", cappedSummary);
+
+        return validateLength(cappedSummary);
     }
 
     private String buildPrompt(String description) {
