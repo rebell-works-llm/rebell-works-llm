@@ -41,8 +41,8 @@ public class CustomScoreStudentJobMatchEngine implements StudentJobMatchEngine {
                                     scoredVacancy.vacancyResponse().description(),
                                     scoredVacancy.vacancyResponse().salary(),
                                     scoredVacancy.vacancyResponse().workingHours(),
-                                    scoredVacancy.vacancyResponse().function(),
-                                    scoredVacancy.embeddingResult()
+                                    scoredVacancy.vacancyResponse().function()
+
                             ),
                             student,
                             scoredVacancy.similarityScore()

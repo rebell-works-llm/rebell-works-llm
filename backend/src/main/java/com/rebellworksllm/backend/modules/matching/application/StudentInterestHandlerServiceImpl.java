@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("mailHandler")
 public class StudentInterestHandlerServiceImpl implements StudentInterestHandlerService {
 
     private static final Logger logger = LoggerFactory.getLogger(StudentInterestHandlerServiceImpl.class);
@@ -24,6 +24,7 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
     private final EmailService emailService;
     private final MatchMessageRepository matchMessageRepository;
     private final VacancyProvider vacancyProvider;
+    private final VacancyNotificationAdapter vacancyNotificationAdapter;
 
     @Value("${mail.to.student-interest}")
     private String mailTo;
@@ -31,18 +32,26 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
     public StudentInterestHandlerServiceImpl(HubSpotStudentProvider studentProvider,
                                              EmailService emailService,
                                              MatchMessageRepository matchMessageRepository,
-                                             VacancyProvider vacancyProvider
+                                             VacancyProvider vacancyProvider,
+                                             VacancyNotificationAdapter vacancyNotificationAdapter
     ) {
         this.studentProvider = studentProvider;
         this.emailService = emailService;
         this.matchMessageRepository = matchMessageRepository;
         this.vacancyProvider = vacancyProvider;
+        this.vacancyNotificationAdapter = vacancyNotificationAdapter;
     }
 
     @Override
     public void handleReply(ContactResponseMessage responseMessage) {
+
+
         StudentContact studentContact = studentProvider.getStudentByPhone(responseMessage.contactPhone());
         logger.info("Interested student found: {}", studentContact.fullName());
+
+        vacancyNotificationAdapter.notifyInterestedCandidate(studentContact.phoneNumber(), responseMessage);
+
+
 
         String normalizedPhone = MatchingUtils.normalizePhone(responseMessage.contactPhone());
         MatchMessageResponse matchMessageResponse = matchMessageRepository.findByContactPhone(normalizedPhone);
@@ -51,9 +60,14 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
         String vacancyId = matchMessageResponse.vacancyIds().get(0);
         if (responseMessage.message().endsWith("2")) {
             vacancyId = matchMessageResponse.vacancyIds().get(1);
+        } else if(responseMessage.message().endsWith("3")){
+            vacancyId = matchMessageResponse.vacancyIds().get(2);
+        } else if (responseMessage.message().endsWith("4")){
+            vacancyId = matchMessageResponse.vacancyIds().get(3);
         }
 
         VacancyResponseDto vacancy = vacancyProvider.getVacancyById(vacancyId);
+        logger.info("poep3 {}", vacancy);
         System.out.println(vacancy);
 
         String plainBody = """
@@ -78,6 +92,8 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
                 vacancy.link()
         );
         emailService.send(mailTo, "New Student Interest", plainBody);
+
+
         logger.info("Email successfully sent to: {}", LogUtils.maskEmail(mailTo));
     }
 }

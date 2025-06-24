@@ -2,13 +2,16 @@ package com.rebellworksllm.backend.modules.matching.application;
 
 import com.rebellworksllm.backend.modules.matching.application.exception.TemplateException;
 import com.rebellworksllm.backend.modules.matching.domain.Vacancy;
+import com.rebellworksllm.backend.modules.whatsapp.application.dto.ContactResponseMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@Qualifier("templateOne")
 public class TemplateServiceImpl implements TemplateService {
 
     private final OpenAIVacancySummaryService openAIVacancySummaryService;
@@ -20,17 +23,12 @@ public class TemplateServiceImpl implements TemplateService {
     }
 
     @Override
-    public List<String> generateVacancyTemplateParams(String candidateName, Vacancy vac1, Vacancy vac2) {
+    public List<String> generateVacancyTemplateParams(String candidateName, Vacancy vac1, Vacancy vac2, Vacancy vac3, Vacancy vac4, ContactResponseMessage responseMessage) {
         String candidateInfo = candidateName != null ? candidateName : "Unknown candidate";
         logger.info("Generating vacancy template for candidate: {}", candidateInfo);
 
-        logger.debug("Job 1 description: {}", vac1.description());
-        logger.debug("Job 2 description: {}", vac2.description());
-
         String vac1GeneratedDescription = openAIVacancySummaryService.generateSummary(vac1.description());
         String vac2GeneratedDescription = openAIVacancySummaryService.generateSummary(vac2.description());
-        logger.debug("Vacancy 1 generated description: {}", vac1GeneratedDescription);
-        logger.debug("Vacancy 2 generated description: {}", vac2GeneratedDescription);
 
         try {
             List<String> templateContent = List.of(
@@ -48,6 +46,8 @@ public class TemplateServiceImpl implements TemplateService {
             throw new TemplateException("Error generating vacancy template: " + ex.getMessage(), ex);
         }
     }
+
+
 
     private String check(String input) {
         return (input == null || input.trim().isEmpty())

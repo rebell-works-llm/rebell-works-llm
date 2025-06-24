@@ -1,53 +1,98 @@
 package com.rebellworksllm.backend.modules.whatsapp.application;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.rebellworksllm.backend.common.utils.LogUtils;
 import com.rebellworksllm.backend.modules.matching.application.StudentInterestHandlerService;
 import com.rebellworksllm.backend.modules.whatsapp.application.dto.ContactResponseMessage;
-import com.rebellworksllm.backend.modules.whatsapp.presentation.dto.WebhookPayload;
-import com.rebellworksllm.backend.modules.whatsapp.presentation.dto.WhatsAppMessagesData;
+import com.rebellworksllm.backend.modules.whatsapp.application.exception.MissingPayloadFieldException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class WhatsAppWebhookService {
 
     private static final Logger logger = LoggerFactory.getLogger(WhatsAppWebhookService.class);
 
-    private final StudentInterestHandlerService studentInterestHandlerService;
+    private final Map<String, StudentInterestHandlerService> handlerServices;
 
-    public WhatsAppWebhookService(StudentInterestHandlerService studentInterestHandlerService) {
-        this.studentInterestHandlerService = studentInterestHandlerService;
+    private final Set<String> processedMessageIds = ConcurrentHashMap.newKeySet();
+
+
+    public WhatsAppWebhookService(Map<String, StudentInterestHandlerService> handlerServices) {
+        this.handlerServices = handlerServices;
     }
 
-    public void processWebhook(WebhookPayload payload) {
-        if (payload.entry() == null) return;
+    public void processWebhook(JsonNode payload) {
+        if (!payload.has("entry")) {
+            logger.warn("Payload missing 'entry' field");
+            throw new MissingPayloadFieldException("Payload missing 'entry' field");
+        }
 
-        for (WebhookPayload.Entry entry : payload.entry()) {
-            if (entry.changes() == null) continue;
+        for (JsonNode entry : payload.get("entry")) {
+            if (!entry.has("changes")) continue;
 
-            for (WhatsAppMessagesData messagesData : entry.changes()) {
-                if (!"messages".equals(messagesData.field())) continue;
+            for (JsonNode change : entry.get("changes")) {
+                String field = change.path("field").asText();
+                JsonNode value = change.path("value");
 
-                WhatsAppMessagesData.Value value = messagesData.value();
-                if (value == null || value.contacts() == null) continue;
+                if (!field.equals("messages")) {
+                    logger.warn("Unknown field '{}' with value: {}", field, value);
+                }
 
-                // Map wa_id to name (for optional logging)
-                Map<String, String> waIdToName = value.contacts().stream()
-                        .collect(Collectors.toMap(WhatsAppMessagesData.Value.Contact::wa_id, c -> c.profile().name()));
-
-                value.messages().stream()
-                        .map(msg -> {
-                            String from = "+" + msg.from();
-                            String name = waIdToName.getOrDefault(msg.from(), "unknown");
-                            String text = msg.text().body();
-                            logger.info("Processing message from {} ({}): {}", name, from, text);
-                            return new ContactResponseMessage(from, text);
-                        })
-                        .forEach(studentInterestHandlerService::handleReply);
+                logger.info("Dynamically processing 'messages' payload");
+                processMessages(value);
             }
+        }
+    }
+
+    @Async
+    public void processWebhookAsync(JsonNode payload) {
+        processWebhook(payload);
+    }
+
+    private void processMessages(JsonNode value) {
+        JsonNode contacts = value.path("contacts");
+        String contactName = contacts.isArray() && !contacts.isEmpty()
+                ? contacts.get(0).path("profile").path("name").asText("unknown")
+                : "unknown";
+
+        JsonNode messages = value.path("messages");
+        if (messages.isArray()) {
+            for (JsonNode msg : messages) {
+                processMessage(msg, contactName);
+            }
+        }
+    }
+
+    private void processMessage(JsonNode msg, String contactName) {
+        String msgType = msg.path("type").asText();
+        String from = msg.path("from").asText();
+        String logId = msg.path("id").asText();
+
+        if (!processedMessageIds.add(logId)) {
+            logger.warn("Duplicate message ignored with ID: {}", logId);
+            return;
+        }
+
+        if (msgType.equals("button")) {
+            String payload = msg.path("button").path("payload").asText(null);
+            String btnText = msg.path("button").path("text").asText(null);
+            logger.info("BUTTON from {} ({}): payload={}, text={}", contactName, LogUtils.maskPhone(from), payload, btnText);
+
+            ContactResponseMessage message = new ContactResponseMessage(from, btnText);
+
+            if ("Meer vacatures".equalsIgnoreCase(btnText)) {
+                handlerServices.get("extraVacancyHandler").handleReply(message);
+            } else {
+                handlerServices.get("mailHandler").handleReply(message);
+            }
+
         }
     }
 }

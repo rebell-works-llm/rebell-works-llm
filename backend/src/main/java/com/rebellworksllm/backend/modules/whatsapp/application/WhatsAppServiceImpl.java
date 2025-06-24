@@ -16,8 +16,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class WhatsAppServiceImpl implements WhatsAppService {
@@ -44,32 +43,34 @@ public class WhatsAppServiceImpl implements WhatsAppService {
         logger.info("Preparing to send WhatsApp message to {} with template '{}'", maskedPhone, templateName);
 
         try {
-
-            if (templateName == null || languageCode == null || parameters == null) {
-                logger.error("Cannot send WhatsApp message: null input detected (phoneNumber={}, templateName={}, languageCode={}, parameters={})",
-                        maskedPhone, templateName, languageCode, parameters);
-                throw new WhatsAppException("Input parameters must not be null");
+            if (templateName == null || languageCode == null || phoneNumber == null) {
+                logger.error("Cannot send WhatsApp message: required fields are null (phoneNumber={}, templateName={}, languageCode={})",
+                        maskedPhone, templateName, languageCode);
+                throw new WhatsAppException("Template name, language code, and phone number must not be null");
             }
 
-            List<Map<String, Object>> bodyParams = parameters.stream()
-                    .map(TextUtils::checkAndCleanText)
-                    .map(text -> Map.<String, Object>of("type", "text", "text", text))
-                    .toList();
+            List<String> safeParameters = parameters == null ? List.of() : parameters;
+
+            Map<String, Object> templateMap = new HashMap<>();
+            templateMap.put("name", templateName);
+            templateMap.put("language", Map.of("code", languageCode));
+
+            if (!safeParameters.isEmpty()) {
+                List<Map<String, Object>> bodyParams = safeParameters.stream()
+                        .map(TextUtils::checkAndCleanText)
+                        .map(text -> Map.<String, Object>of("type", "text", "text", text))
+                        .toList();
+
+                templateMap.put("components", List.of(
+                        Map.of("type", "body", "parameters", bodyParams)
+                ));
+            }
 
             Map<String, Object> messageBody = Map.of(
                     "messaging_product", "whatsapp",
                     "to", phoneNumber,
                     "type", "template",
-                    "template", Map.of(
-                            "name", templateName,
-                            "language", Map.of("code", languageCode),
-                            "components", List.of(
-                                    Map.of(
-                                            "type", "body",
-                                            "parameters", bodyParams
-                                    )
-                            )
-                    )
+                    "template", templateMap
             );
 
             String jsonBody = objectMapper.writeValueAsString(messageBody);
@@ -95,6 +96,7 @@ public class WhatsAppServiceImpl implements WhatsAppService {
 
             logger.info("Successfully sent WhatsApp message to {} with template '{}'. Status: {}", maskedPhone, templateName, statusCode);
             logger.debug("WhatsApp API response for {}: {}", maskedPhone, response.body());
+
         } catch (IOException | InterruptedException ex) {
             logger.error("Technical error sending WhatsApp message to {}: {}", maskedPhone, ex.getMessage(), ex);
             Thread.currentThread().interrupt();

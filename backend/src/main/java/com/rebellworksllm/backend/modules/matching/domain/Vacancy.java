@@ -9,7 +9,6 @@ public record Vacancy(
         String description,
         String salary,
         String workingHours,
-        String function,
-        EmbeddingResult embeddingResult
+        String function
 ) {
 }
