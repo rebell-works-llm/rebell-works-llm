@@ -1,5 +1,6 @@
 package com.rebellworksllm.backend.modules.matching.application;
 
+import com.rebellworksllm.backend.common.utils.TextUtils;
 import com.rebellworksllm.backend.modules.matching.application.exception.TemplateException;
 import com.rebellworksllm.backend.modules.matching.domain.Vacancy;
 import com.rebellworksllm.backend.modules.whatsapp.application.dto.ContactResponseMessage;
@@ -28,6 +29,8 @@ public class ExtraVacancyTemplateServiceImpl implements TemplateService {
         logger.debug("Job 3 description: {}", vac3.description());
         logger.debug("Job 4 description: {}", vac4.description());
 
+        String vac3Title = TextUtils.sanitize(vac3.title());
+        String vac4Title = TextUtils.sanitize(vac4.title());
         String vac3GeneratedDescription = openAIVacancySummaryService.generateSummary(vac3.description());
         String vac4GeneratedDescription = openAIVacancySummaryService.generateSummary(vac4.description());
 
@@ -36,9 +39,9 @@ public class ExtraVacancyTemplateServiceImpl implements TemplateService {
 
         try {
             List<String> templateContent = List.of(
-                    check(vac3.title()), check(vac3GeneratedDescription), check(vac3.workingHours()),
+                    check(vac3Title), check(vac3GeneratedDescription), check(vac3.workingHours()),
                     check(vac3.salary()), check(vac3.function()),
-                    check(vac4.title()), check(vac4GeneratedDescription), check(vac4.workingHours()),
+                    check(vac4Title), check(vac4GeneratedDescription), check(vac4.workingHours()),
                     check(vac4.salary()), check(vac4.function())
             );
             return templateContent;
