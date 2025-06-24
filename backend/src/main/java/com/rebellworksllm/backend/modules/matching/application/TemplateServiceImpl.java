@@ -27,13 +27,8 @@ public class TemplateServiceImpl implements TemplateService {
         String candidateInfo = candidateName != null ? candidateName : "Unknown candidate";
         logger.info("Generating vacancy template for candidate: {}", candidateInfo);
 
-        logger.debug("Job 1 description: {}", vac1.description());
-        logger.debug("Job 2 description: {}", vac2.description());
-
         String vac1GeneratedDescription = openAIVacancySummaryService.generateSummary(vac1.description());
         String vac2GeneratedDescription = openAIVacancySummaryService.generateSummary(vac2.description());
-        logger.debug("Vacancy 1 generated description: {}", vac1GeneratedDescription);
-        logger.debug("Vacancy 2 generated description: {}", vac2GeneratedDescription);
 
         try {
             List<String> templateContent = List.of(
