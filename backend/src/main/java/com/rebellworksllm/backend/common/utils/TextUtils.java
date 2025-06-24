@@ -11,15 +11,18 @@ public class TextUtils {
      * Clean and escape text parameter for WhatsApp template.
      */
     public static String checkAndCleanText(final String input) {
-        if (input == null || input.trim().isEmpty()) {
-            return "Unknown";
-        }
+        // DEPRECATED FOR TESTING
+        return input;
 
-        String cleaned = input.replaceAll("[\\n\\t\\r]+", " ")
-                .replaceAll(" {2,}", " ")
-                .trim();
-
-        return StringEscapeUtils.escapeJson(cleaned);
+//        if (input == null || input.trim().isEmpty()) {
+//            return "Unknown";
+//        }
+//
+//        String cleaned = input.replaceAll("[\\n\\t\\r]+", " ")
+//                .replaceAll(" {2,}", " ")
+//                .trim();
+//
+//        return StringEscapeUtils.escapeJson(cleaned);
     }
 
     public static String sanitize(String input) {
