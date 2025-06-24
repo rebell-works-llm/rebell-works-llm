@@ -36,10 +36,10 @@ public class ExtraVacancyTemplateServiceImpl implements TemplateService {
 
         try {
             List<String> templateContent = List.of(
-                    check(vac3.title()), check(vac3GeneratedDescription), check(vac3.workingHours()),
-                    check(vac3.salary()), check(vac3.function()),
-                    check(vac4.title()), check(vac4GeneratedDescription), check(vac4.workingHours()),
-                    check(vac4.salary()), check(vac4.function())
+                    check(vac3.title()), check(vac3GeneratedDescription), check(vac3.salary()),
+                    check(vac3.workingHours()), check(vac3.function()),
+                    check(vac4.title()), check(vac4GeneratedDescription), check(vac4.salary()),
+                    check(vac4.workingHours()), check(vac4.function())
             );
             return templateContent;
         } catch (Exception ex) {
