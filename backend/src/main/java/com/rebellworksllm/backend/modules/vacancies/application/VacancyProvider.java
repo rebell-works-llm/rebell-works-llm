@@ -11,5 +11,5 @@ public interface VacancyProvider {
 
     VacancyResponseDto getVacancyById(String id);
 
-    boolean incrementMatchCount(String id);
+    void incrementMatchCount(String id);
 }

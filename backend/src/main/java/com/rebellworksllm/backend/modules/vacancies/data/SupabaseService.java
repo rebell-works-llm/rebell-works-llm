@@ -64,7 +64,14 @@ public class SupabaseService {
                     .build()
                     .toUri();
 
-            restTemplate.exchange(uri, HttpMethod.PATCH, entity, Void.class);
+            logger.info("Uri as string: " + uri.toString());
+
+            ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.PATCH, entity, String.class);
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                logger.error("Supabase API error for PATCH: status={}", response.getStatusCode());
+                throw new MatchingException("Supabase PATCH error: " + response.getStatusCode());
+            }
 
             logger.info("Successfully updated matchCount for id: {}", id);
 
