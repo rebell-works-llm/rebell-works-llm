@@ -16,9 +16,6 @@ public class SupabaseConfig {
                 .interceptors((request, body, execution) -> {
                     request.getHeaders().add("apikey", credentials.getApiKey());
                     request.getHeaders().add("Authorization", "Bearer " + credentials.getApiKey());
-//                    request.getHeaders().add("Content-Type", "application/json");
-//                    System.out.println("Supabase full URI: " + request.getURI());
-//                    System.out.println("Supabase headers: " + request.getHeaders());
                     return execution.execute(request, body);
                 })
                 .build();

@@ -18,9 +18,6 @@ public class PineconeConfig {
             request.getHeaders().add("Api-Key", credentials.getApiKey());
             request.getHeaders().add("Content-Type", "application/json");
 
-//            System.out.println("Pinecone Request URI: " + request.getURI());
-//            System.out.println("Pinecone headers: " + request.getHeaders());
-
             return execution.execute(request, body);
         };
         template.setInterceptors(List.of(authInterceptor));
