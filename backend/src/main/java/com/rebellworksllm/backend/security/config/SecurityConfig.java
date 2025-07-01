@@ -27,7 +27,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/v1/whatsapp/**",
-                                "/api/v1/hubspot/**"
+                                "/api/v1/hubspot/**",
+                                "/send-test"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -35,4 +36,5 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 }
