@@ -64,7 +64,6 @@ public class SupabaseService {
                     .build()
                     .toUri();
 
-            logger.info("Uri as string: " + uri.toString());
 
             ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.PATCH, entity, String.class);
 
