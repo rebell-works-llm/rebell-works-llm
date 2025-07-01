@@ -1,7 +1,5 @@
 package com.rebellworksllm.backend.modules.matching.application;
 
-import com.rebellworksllm.backend.modules.hubspot.application.HubSpotStudentProvider;
-import com.rebellworksllm.backend.modules.hubspot.application.dto.StudentContact;
 import com.rebellworksllm.backend.modules.matching.application.util.MatchingUtils;
 import com.rebellworksllm.backend.modules.matching.data.MatchMessageRepository;
 import com.rebellworksllm.backend.modules.matching.data.dto.MatchMessageResponse;

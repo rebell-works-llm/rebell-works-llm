@@ -1,7 +1,6 @@
 package com.rebellworksllm.backend.modules.email.application;
 
 import com.rebellworksllm.backend.modules.email.application.exception.EmailException;
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

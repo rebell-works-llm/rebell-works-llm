@@ -5,7 +5,6 @@ import com.rebellworksllm.backend.modules.hubspot.application.dto.StudentContact
 import com.rebellworksllm.backend.modules.matching.application.util.MatchingUtils;
 import com.rebellworksllm.backend.modules.matching.data.MatchMessageRepository;
 import com.rebellworksllm.backend.modules.matching.data.dto.MatchMessageResponse;
-import com.rebellworksllm.backend.modules.matching.domain.Vacancy;
 import com.rebellworksllm.backend.modules.vacancies.application.VacancyProvider;
 import com.rebellworksllm.backend.modules.vacancies.application.dto.VacancyResponseDto;
 import com.rebellworksllm.backend.modules.whatsapp.application.dto.ContactResponseMessage;

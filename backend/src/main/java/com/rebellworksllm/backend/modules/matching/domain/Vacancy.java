@@ -1,6 +1,5 @@
 package com.rebellworksllm.backend.modules.matching.domain;
 
-import com.rebellworksllm.backend.modules.openai.application.dto.EmbeddingResult;
 
 public record Vacancy(
 
