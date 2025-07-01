@@ -1,7 +1,6 @@
 package com.rebellworksllm.backend.modules.whatsapp.presentation.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rebellworksllm.backend.modules.whatsapp.application.WhatsAppWebhookService;
 import com.rebellworksllm.backend.modules.whatsapp.application.exception.MissingPayloadFieldException;
 import com.rebellworksllm.backend.modules.whatsapp.config.WhatsAppCredentials;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 public class WhatsAppWebhookController {
 
     private static final Logger logger = LoggerFactory.getLogger(WhatsAppWebhookController.class);
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     private final WhatsAppCredentials whatsAppCredentials;
     private final WhatsAppWebhookService whatsAppWebhookService;
