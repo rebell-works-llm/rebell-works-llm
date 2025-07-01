@@ -1,0 +1,137 @@
+<configuration>
+
+    <!-- BACKEND FILE APPENDER -->
+    <appender name="BACKEND_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>backend/logs/matching.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>backend/logs/matching.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <timeZone>UTC</timeZone>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_BACKEND_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="BACKEND_FILE"/>
+        <queueSize>1000</queueSize>
+    </appender>
+
+    <!-- SECURITY FILE APPENDER -->
+    <appender name="SECURITY_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>backend/logs/security.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>backend/logs/security.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <timeZone>UTC</timeZone>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_SECURITY_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="SECURITY_FILE"/>
+        <queueSize>500</queueSize>
+    </appender>
+
+
+    <!-- CONSOLE FOR DEV -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{20} [%X{correlationId}] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- PRODUCTION LOGGING -->
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="ASYNC_BACKEND_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <logger name="com.rebellworksllm.backend" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_BACKEND_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <logger name="org.springframework.security" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_SECURITY_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <logger name="com.rebellworksllm.backend.security" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_SECURITY_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <!-- Quiet down verbose libs even more if needed -->
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.apache" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+    </springProfile>
+
+    <!-- STAGING LOGGING -->
+    <springProfile name="staging">
+        <!-- Only show debug for your own code, rest is info/warn/error only -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_BACKEND_FILE"/>
+        </root>
+
+        <logger name="com.rebellworksllm.backend" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_BACKEND_FILE"/>
+        </logger>
+
+        <logger name="org.springframework.security" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_SECURITY_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <logger name="com.rebellworksllm.backend.security" level="DEBUG" additivity="false">
+            <appender-ref ref="ASYNC_SECURITY_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.apache" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+    </springProfile>
+
+    <!-- DEVELOPMENT LOGGING -->
+    <springProfile name="dev">
+        <!-- Only show debug for your own code, rest is info/warn/error only -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_BACKEND_FILE"/>
+        </root>
+
+        <logger name="com.rebellworksllm.backend" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_BACKEND_FILE"/>
+        </logger>
+
+        <logger name="org.springframework.security" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_SECURITY_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <logger name="com.rebellworksllm.backend.security" level="DEBUG" additivity="false">
+            <appender-ref ref="ASYNC_SECURITY_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.apache" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+    </springProfile>
+
+</configuration>

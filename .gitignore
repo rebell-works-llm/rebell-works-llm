@@ -1,0 +1,6 @@
+/.idea
+*.env
+*.env.*
+/http-client.env.json
+/logs/
+/backend/logs/
