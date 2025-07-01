@@ -6,7 +6,4 @@ public class MissingPayloadFieldException extends RuntimeException {
         super(message);
     }
 
-    public MissingPayloadFieldException(String message, Throwable cause) {
-        super(message);
-    }
 }

@@ -6,7 +6,4 @@ public class OpenAICompletionException extends RuntimeException {
         super(message);
     }
 
-    public OpenAICompletionException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }
