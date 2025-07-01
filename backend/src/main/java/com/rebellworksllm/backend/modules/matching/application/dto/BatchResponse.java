@@ -39,12 +39,4 @@ public record BatchResponse(
         );
     }
 
-    public static BatchResponse failure(String batchId, List<BatchPayloadResponse> batchPayloadResponses) {
-        return new BatchResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Batch processing failed",
-                batchId,
-                batchPayloadResponses
-        );
-    }
 }
