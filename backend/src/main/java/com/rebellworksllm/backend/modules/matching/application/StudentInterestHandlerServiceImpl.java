@@ -67,6 +67,7 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
         }
 
         VacancyResponseDto vacancy = vacancyProvider.getVacancyById(vacancyId);
+        vacancyProvider.incrementMatchCount(vacancyId);
         logger.info("poep3 {}", vacancy);
         System.out.println(vacancy);
 

@@ -45,7 +45,7 @@ public class VacancyService implements VacancyProvider {
     }
 
     @Override
-    public boolean incrementMatchCount(String id) {
-        return false;
+    public void incrementMatchCount(String id) {
+        supabaseService.updateMatchCount(id);
     }
 }
