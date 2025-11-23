@@ -3,7 +3,7 @@ package com.rebellworksllm.backend;
 import com.rebellworksllm.backend.modules.openai.config.OpenAICredentials;
 import com.rebellworksllm.backend.modules.hubspot.config.HubSpotCredentials;
 import com.rebellworksllm.backend.modules.vacancies.config.PineconeCredentials;
-import com.rebellworksllm.backend.config.supabase.SupabaseCredentials;
+import com.rebellworksllm.backend.common.config.SupabaseCredentials;
 import com.rebellworksllm.backend.modules.whatsapp.config.WhatsAppCredentials;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

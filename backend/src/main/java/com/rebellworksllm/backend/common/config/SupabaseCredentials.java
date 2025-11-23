@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.config.supabase;
+package com.rebellworksllm.backend.common.config;
 
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;

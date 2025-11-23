@@ -1,4 +1,4 @@
-package com.rebellworksllm.backend.config.supabase;
+package com.rebellworksllm.backend.common.config;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
