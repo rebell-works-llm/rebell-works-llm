@@ -1,6 +1,7 @@
 /.idea
-*.env
-*.env.*
+.env
+.env.*
+!/.env.example
 /http-client.env.json
 /logs/
 /backend/logs/
