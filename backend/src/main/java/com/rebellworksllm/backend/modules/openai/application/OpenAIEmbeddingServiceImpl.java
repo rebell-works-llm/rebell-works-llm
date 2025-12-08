@@ -7,23 +7,23 @@ import com.rebellworksllm.backend.modules.openai.config.OpenAICredentials;
 import com.rebellworksllm.backend.modules.openai.application.dto.EmbeddingResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 @Service
 public class OpenAIEmbeddingServiceImpl implements OpenAIEmbeddingService {
 
     private static final Logger logger = LoggerFactory.getLogger(OpenAIEmbeddingServiceImpl.class);
 
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
     private final OpenAICredentials credentials;
 
-    public OpenAIEmbeddingServiceImpl(@Qualifier("openaiRestTemplate") RestTemplate restTemplate, OpenAICredentials credentials) {
-        this.restTemplate = restTemplate;
+    public OpenAIEmbeddingServiceImpl(
+            RestClient openaiRestClient,
+            OpenAICredentials credentials
+    ) {
+        this.restClient = openaiRestClient;
         this.credentials = credentials;
     }
 
@@ -33,28 +33,37 @@ public class OpenAIEmbeddingServiceImpl implements OpenAIEmbeddingService {
                 text != null ? text.length() : 0,
                 credentials.getEmbeddingModel());
 
+        EmbeddingRequest request = new EmbeddingRequest(credentials.getEmbeddingModel(), text, "float");
+
         try {
-            EmbeddingRequest request = new EmbeddingRequest(credentials.getEmbeddingModel(), text, "float");
-            HttpEntity<EmbeddingRequest> entity = new HttpEntity<>(request);
+            EmbeddingResponse response =
+                    restClient.post()
+                            .uri("/v1/embeddings")
+                            .body(request)
+                            .retrieve()
+                            .onStatus(
+                                    HttpStatusCode::isError,
+                                    (req, res) -> {
+                                        throw new OpenAIEmbeddingException(
+                                                "OpenAI API error: " + res.getStatusCode()
+                                        );
+                                    }
+                            )
+                            .body(EmbeddingResponse.class);
 
-            ResponseEntity<EmbeddingResponse> response = restTemplate.postForEntity("/embeddings", entity, EmbeddingResponse.class);
-
-            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                logger.error("Received non-2xx status or empty body from OpenAI: status={}, body={}",
-                        response.getStatusCode(), response.getBody());
-                throw new OpenAIEmbeddingException("OpenAI API error: " + response.getStatusCode());
+            if (response == null || response.data().isEmpty()) {
+                throw new OpenAIEmbeddingException(
+                        "OpenAI API returned empty embedding response"
+                );
             }
 
-            logger.info("Successfully received embedding for text with length: {}",
-                    text != null ? text.length() : 0);
+            logger.info("Successfully received embedding for text with length: {}", text != null ? text.length() : 0);
 
-            return new EmbeddingResult(response.getBody().data().getFirst().embedding());
-        } catch (HttpClientErrorException e) {
-            logger.error("Client error while requesting embedding from OpenAI: status={}, response={}",
-                    e.getStatusCode(), e.getResponseBodyAsString(), e);
-            throw new OpenAIEmbeddingException("OpenAI API error: " + e.getStatusCode(), e);
+            return new EmbeddingResult(response.data().getFirst().embedding());
+        } catch (OpenAIEmbeddingException e) {
+            throw e;
         } catch (Exception e) {
-            logger.error("Unexpected error while requesting embedding from OpenAI: {}", e.getMessage(), e);
+            logger.error("Unexpected error while requesting embedding from OpenAI", e);
             throw new OpenAIEmbeddingException("Unexpected error from OpenAI embedding API", e);
         }
     }

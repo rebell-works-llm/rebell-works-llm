@@ -10,9 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -23,11 +25,11 @@ public class OpenAICompletionServiceImpl implements OpenAICompletionService {
 
     private static final Logger logger = LoggerFactory.getLogger(OpenAICompletionServiceImpl.class);
 
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
     private final OpenAICredentials credentials;
 
-    public OpenAICompletionServiceImpl(@Qualifier("openaiRestTemplate") RestTemplate restTemplate, OpenAICredentials credentials) {
-        this.restTemplate = restTemplate;
+    public OpenAICompletionServiceImpl(RestClient restClient, OpenAICredentials credentials) {
+        this.restClient = restClient;
         this.credentials = credentials;
     }
 
@@ -46,24 +48,32 @@ public class OpenAICompletionServiceImpl implements OpenAICompletionService {
         HttpEntity<ChatCompletionRequest> entity = new HttpEntity<>(request);
 
         try {
-            ResponseEntity<ChatCompletionResponse> response = restTemplate.postForEntity(
-                    "/chat/completions",
-                    entity,
-                    ChatCompletionResponse.class
-            );
+            ChatCompletionResponse response =
+                    restClient.post()
+                            .uri("/v1/chat/completions")
+                            .body(request)
+                            .retrieve()
+                            .onStatus(HttpStatusCode::isError,
+                                    (req, res) -> {
+                                        throw new OpenAICompletionException(
+                                                "OpenAI API error: " + res.getStatusCode()
+                                        );
+                                    }
+                            )
+                            .body(ChatCompletionResponse.class);
 
-            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new OpenAICompletionException("OpenAI API error: " + response.getStatusCode());
+            if (response == null || response.choices().isEmpty()) {
+                throw new OpenAICompletionException(
+                        "OpenAI API returned empty completion response"
+                );
             }
 
-            return response.getBody().getFirstMessageContent().trim();
-        } catch (HttpClientErrorException e) {
-            logger.error("Client error while requesting chat completion from OpenAI: status={}, response={}",
-                    e.getStatusCode(), e.getResponseBodyAsString(), e);
-            throw new OpenAIEmbeddingException("OpenAI API chat completion error: " + e.getStatusCode(), e);
+            return response.getFirstMessageContent().trim();
+        } catch (OpenAICompletionException e) {
+            throw e;
         } catch (Exception e) {
-            logger.error("Unexpected error while requesting chat completion from OpenAI: {}", e.getMessage(), e);
-            throw new OpenAIEmbeddingException("Unexpected error from OpenAI chat completion API", e);
+            logger.error("Unexpected error while requesting chat completion from OpenAI", e);
+            throw new OpenAICompletionException("Unexpected error from OpenAI chat completion API", e);
         }
     }
 }
