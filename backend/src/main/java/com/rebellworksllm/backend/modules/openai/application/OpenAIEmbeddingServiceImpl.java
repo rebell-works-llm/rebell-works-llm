@@ -29,6 +29,7 @@ public class OpenAIEmbeddingServiceImpl implements OpenAIEmbeddingService {
 
     @Override
     public EmbeddingResult embedText(String text) {
+        logger.info(text);
         logger.info("Requesting embedding from OpenAI for text with length: {} (model: {})",
                 text != null ? text.length() : 0,
                 credentials.getEmbeddingModel());

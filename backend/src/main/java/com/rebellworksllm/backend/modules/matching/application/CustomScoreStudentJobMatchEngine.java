@@ -51,12 +51,19 @@ public class CustomScoreStudentJobMatchEngine implements StudentJobMatchEngine {
 
             return initialMatches.stream()
                     .map(match -> {
-                        VacancyResponseDto response = vacancyProvider.getVacancyById(match.vacancy().id());
-                        double newScore = ScoreService.priorityScore(match.matchScore(), response.priority(), response.matchCount());
+                        double calcMatchScore;
+                        try {
+                            VacancyResponseDto response = vacancyProvider.getVacancyById(match.vacancy().id());
+                            calcMatchScore = ScoreService.priorityScore(match.matchScore(), response.priority(), response.matchCount());
+                        } catch (Exception e) {
+                            logger.error(e.getMessage(), e);
+                            calcMatchScore = match.matchScore();
+                        }
+
                         return new StudentVacancyMatch(
                                 match.vacancy(),
                                 match.student(),
-                                newScore
+                                calcMatchScore
                         );
                     })
                     .sorted(Comparator.comparingDouble(StudentVacancyMatch::matchScore).reversed())
