@@ -1,12 +1,14 @@
 package com.rebellworksllm.backend.modules.whatsapp.application;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.rebellworksllm.backend.common.utils.ErrorNotificationService;
 import com.rebellworksllm.backend.common.utils.LogUtils;
 import com.rebellworksllm.backend.modules.matching.application.StudentInterestHandlerService;
 import com.rebellworksllm.backend.modules.whatsapp.application.dto.ContactResponseMessage;
 import com.rebellworksllm.backend.modules.whatsapp.application.exception.MissingPayloadFieldException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +22,21 @@ public class WhatsAppWebhookService {
     private static final Logger logger = LoggerFactory.getLogger(WhatsAppWebhookService.class);
 
     private final Map<String, StudentInterestHandlerService> handlerServices;
+    private final ErrorNotificationService errorNotificationService;
 
     private final Set<String> processedMessageIds = ConcurrentHashMap.newKeySet();
 
-
-    public WhatsAppWebhookService(Map<String, StudentInterestHandlerService> handlerServices) {
+    public WhatsAppWebhookService(
+            Map<String, StudentInterestHandlerService> handlerServices,
+            ErrorNotificationService errorNotificationService
+    ) {
         this.handlerServices = handlerServices;
+        this.errorNotificationService = errorNotificationService;
+    }
+
+    @Async
+    public void processWebhookAsync(JsonNode payload) {
+        processWebhook(payload);
     }
 
     public void processWebhook(JsonNode payload) {
@@ -35,29 +46,28 @@ public class WhatsAppWebhookService {
         }
 
         for (JsonNode entry : payload.get("entry")) {
-            if (!entry.has("changes")) continue;
+            if (!entry.has("changes")) {
+                continue;
+            }
 
             for (JsonNode change : entry.get("changes")) {
                 String field = change.path("field").asText();
                 JsonNode value = change.path("value");
 
-                if (!field.equals("messages")) {
+                if (!"messages".equals(field)) {
                     logger.warn("Unknown field '{}' with value: {}", field, value);
+                    continue;
                 }
 
-                logger.info("Dynamically processing 'messages' payload");
+                logger.info("Processing WhatsApp 'messages' payload");
                 processMessages(value);
             }
         }
     }
 
-    @Async
-    public void processWebhookAsync(JsonNode payload) {
-        processWebhook(payload);
-    }
-
     private void processMessages(JsonNode value) {
         JsonNode contacts = value.path("contacts");
+
         String contactName = contacts.isArray() && !contacts.isEmpty()
                 ? contacts.get(0).path("profile").path("name").asText("unknown")
                 : "unknown";
@@ -71,28 +81,83 @@ public class WhatsAppWebhookService {
     }
 
     private void processMessage(JsonNode msg, String contactName) {
-        String msgType = msg.path("type").asText();
+        String messageId = msg.path("id").asText();
         String from = msg.path("from").asText();
-        String logId = msg.path("id").asText();
+        String msgType = msg.path("type").asText();
 
-        if (!processedMessageIds.add(logId)) {
-            logger.warn("Duplicate message ignored with ID: {}", logId);
-            return;
-        }
+        MDC.put("correlationId", "whatsapp:" + messageId);
+        MDC.put("whatsappMessageId", messageId);
+        MDC.put("from", LogUtils.maskPhone(from));
 
-        if (msgType.equals("button")) {
-            String payload = msg.path("button").path("payload").asText(null);
-            String btnText = msg.path("button").path("text").asText(null);
-            logger.info("BUTTON from {} ({}): payload={}, text={}", contactName, LogUtils.maskPhone(from), payload, btnText);
-
-            ContactResponseMessage message = new ContactResponseMessage(from, btnText);
-
-            if ("Meer vacatures".equalsIgnoreCase(btnText)) {
-                handlerServices.get("extraVacancyHandler").handleReply(message);
-            } else {
-                handlerServices.get("mailHandler").handleReply(message);
+        try {
+            if (processedMessageIds.contains(messageId)) {
+                logger.warn("Duplicate message ignored");
+                return;
             }
 
+            if (!"button".equals(msgType)) {
+                logger.info("Ignoring unsupported WhatsApp message type: {}", msgType);
+                return;
+            }
+
+            String payload = msg.path("button").path("payload").asText(null);
+            String btnText = msg.path("button").path("text").asText(null);
+
+            logger.info(
+                    "BUTTON from {} ({}): payload={}, text={}",
+                    contactName,
+                    LogUtils.maskPhone(from),
+                    payload,
+                    btnText
+            );
+
+            ContactResponseMessage message =
+                    new ContactResponseMessage(from, btnText);
+
+            try {
+                if ("Meer vacatures".equalsIgnoreCase(btnText)) {
+                    handlerServices
+                            .get("extraVacancyHandler")
+                            .handleReply(message);
+                } else {
+                    handlerServices
+                            .get("mailHandler")
+                            .handleReply(message);
+                }
+                processedMessageIds.add(messageId);
+            } catch (Exception e) {
+                logger.error("Error while handling WhatsApp button message", e);
+
+                String contextInfo = String.format("""
+                                WhatsApp message handling failed
+                                
+                                Message:
+                                - messageId: %s
+                                - from: %s
+                                - contactName: %s
+                                - type: %s
+                                - payload: %s
+                                - text: %s
+                                """,
+                        messageId,
+                        LogUtils.maskPhone(from),
+                        contactName,
+                        msgType,
+                        payload,
+                        btnText
+                );
+
+                errorNotificationService.sendErrorEmail(
+                        "WhatsApp Webhook Handling Failed",
+                        contextInfo,
+                        e
+                );
+
+                throw e;
+            }
+
+        } finally {
+            MDC.clear();
         }
     }
 }

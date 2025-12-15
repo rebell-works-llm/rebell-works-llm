@@ -43,7 +43,7 @@ public class WhatsAppServiceImpl implements WhatsAppService {
         logger.info("Preparing to send WhatsApp message to {} with template '{}'", maskedPhone, templateName);
 
         try {
-            if (templateName == null || languageCode == null || phoneNumber == null) {
+            if (templateName == null || languageCode == null) {
                 logger.error("Cannot send WhatsApp message: required fields are null (phoneNumber={}, templateName={}, languageCode={})",
                         maskedPhone, templateName, languageCode);
                 throw new WhatsAppException("Template name, language code, and phone number must not be null");
@@ -97,10 +97,13 @@ public class WhatsAppServiceImpl implements WhatsAppService {
             logger.info("Successfully sent WhatsApp message to {} with template '{}'. Status: {}", maskedPhone, templateName, statusCode);
             logger.debug("WhatsApp API response for {}: {}", maskedPhone, response.body());
 
-        } catch (IOException | InterruptedException ex) {
-            logger.error("Technical error sending WhatsApp message to {}: {}", maskedPhone, ex.getMessage(), ex);
+        } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            throw new WhatsAppException("Error sending WhatsApp message to " + maskedPhone, ex);
+            logger.error("Interrupted while sending WhatsApp message to {}: {}", maskedPhone, ex.getMessage(), ex);
+            throw new WhatsAppException("Interrupted while sending WhatsApp message to " + maskedPhone, ex);
+        } catch (IOException ex) {
+            logger.error("I/O error sending WhatsApp message to {}: {}", maskedPhone, ex.getMessage(), ex);
+            throw new WhatsAppException("I/O error sending WhatsApp message to " + maskedPhone, ex);
         } catch (Exception ex) {
             logger.error("Unexpected error sending WhatsApp message to {}: {}", maskedPhone, ex.getMessage(), ex);
             throw new WhatsAppException("Unexpected error sending WhatsApp message to " + maskedPhone, ex);

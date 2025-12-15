@@ -29,7 +29,9 @@ public class HubSpotWebhookController {
     }
 
     @PostMapping("/created")
-    public ResponseEntity<BatchResponse> handleContactCreation(@Valid @RequestBody List<HubSpotWebhooksBatchResponse.HubSpotWebhooksPayload> response) {
+    public ResponseEntity<BatchResponse> handleContactCreation(
+            @Valid @RequestBody List<HubSpotWebhooksBatchResponse.HubSpotWebhooksPayload> response
+    ) {
         String correlationId = UUID.randomUUID().toString();
         MDC.put("correlationId", correlationId);
         logger.info("Incoming webhook batch with {} payload(s)", response.size());

@@ -1,9 +1,11 @@
 package com.rebellworksllm.backend.modules.matching.application;
 
+import com.rebellworksllm.backend.common.utils.ErrorNotificationService;
 import com.rebellworksllm.backend.modules.email.application.EmailService;
 import com.rebellworksllm.backend.modules.hubspot.application.dto.StudentContact;
 import com.rebellworksllm.backend.modules.hubspot.application.HubSpotStudentProvider;
 import com.rebellworksllm.backend.modules.matching.application.dto.BatchResponse;
+import com.rebellworksllm.backend.modules.matching.application.exception.MatchingException;
 import com.rebellworksllm.backend.modules.matching.application.util.MatchingUtils;
 import com.rebellworksllm.backend.modules.matching.data.MatchMessageRepository;
 import com.rebellworksllm.backend.modules.matching.data.dto.MatchMessageRequest;
@@ -20,7 +22,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -42,17 +43,21 @@ public class HubSpotWebhookService {
     private final EmailService emailService;
     private final VacancyNotificationAdapter vacancyNotificationAdapter;
     private final MatchMessageRepository matchMessageRepository;
+    private final ErrorNotificationService errorNotificationService;
 
     @Value("${mail.to.student-matched}")
     private String mailTo;
 
-    public HubSpotWebhookService(StudentJobMatchEngine matchEngine,
-                                 HubSpotStudentProvider studentProvider,
-                                 OpenAIEmbeddingService embeddingService,
-                                 EmailService emailService,
-                                 VacancyNotificationAdapter vacancyNotificationAdapter,
-                                 @Qualifier("jobMatchingExecutor") Executor jobMatchingExecutor,
-                                 MatchMessageRepository matchMessageRepository) {
+    public HubSpotWebhookService(
+            StudentJobMatchEngine matchEngine,
+            HubSpotStudentProvider studentProvider,
+            OpenAIEmbeddingService embeddingService,
+            EmailService emailService,
+            VacancyNotificationAdapter vacancyNotificationAdapter,
+            @Qualifier("jobMatchingExecutor") Executor jobMatchingExecutor,
+            MatchMessageRepository matchMessageRepository,
+            ErrorNotificationService errorNotificationService
+    ) {
         this.matchEngine = matchEngine;
         this.studentProvider = studentProvider;
         this.embeddingService = embeddingService;
@@ -60,101 +65,56 @@ public class HubSpotWebhookService {
         this.emailService = emailService;
         this.jobMatchingExecutor = jobMatchingExecutor;
         this.matchMessageRepository = matchMessageRepository;
+        this.errorNotificationService = errorNotificationService;
     }
 
-    public BatchResponse processBatch(List<HubSpotWebhooksBatchResponse.HubSpotWebhooksPayload> payloads) {
-        logger.info("Starting batch processing of {} payload(s)", payloads.size());
-
-        // Launch each item in parallel
-        List<CompletableFuture<BatchResponse.BatchPayloadResponse>> futures = payloads.stream()
-                .map(payload ->
-                        CompletableFuture.supplyAsync(() -> processStudentMatch(payload.objectId()), jobMatchingExecutor)
-                                .exceptionally(ex -> {
-                                    logger.error("Batch error for objectId={}: {}", payload.objectId(), ex.getMessage(), ex);
-                                    return BatchResponse.singleMessage(payload.objectId(), "Failed: " + ex.getMessage());
-                                })
-                )
-                .toList();
-
-        // Wait for all tasks and collect results
-        List<BatchResponse.BatchPayloadResponse> results = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                .thenApply(v -> futures.stream().map(CompletableFuture::join).toList())
-                .join();
-
-        logger.info("Completed batch processing for {} payload(s)", results.size());
-        return BatchResponse.success("Batch processed", results);
-    }
-
-    public BatchResponse.BatchPayloadResponse processStudentMatch(long id) {
-        final String correlationId = UUID.randomUUID().toString();
-        MDC.put("correlationId", correlationId);
-
-        List<BatchResponse.BatchPayloadStepResult> stepResults = new ArrayList<>();
+    public BatchResponse processBatch(
+            List<HubSpotWebhooksBatchResponse.HubSpotWebhooksPayload> payloads
+    ) {
+        logger.info("Received batch with {} payload(s)", payloads.size());
 
         try {
-            logger.info("Processing webhook for objectId: {}", id);
+            runBatchItemsInParallel(payloads);
+            return BatchResponse.accepted();
 
-            // 1. Student
-            Student student;
-            try {
-                student = findStudent(id);
-                stepResults.add(new BatchResponse.BatchPayloadStepResult(
-                        "student", true, "Student fetched and embedding created"));
-            } catch (Exception e) {
-                logger.error("Failed to fetch student or embedding for id {}: {}", id, e.getMessage(), e);
-                stepResults.add(new BatchResponse.BatchPayloadStepResult(
-                        "student", false, "Student fetch/embedding failed: " + e.getMessage()));
-                return new BatchResponse.BatchPayloadResponse(id, stepResults);
-            }
+        } catch (Exception ex) {
+            logger.error("Failed to start batch processing", ex);
+            return BatchResponse.failed();
+        }
+    }
 
-            List<StudentVacancyMatch> matches;
-            try {
-                matches = matchEngine.query(student, FIRST_MATCH_LIMIT);
-                if (matches.size() < FIRST_MATCH_LIMIT) {
-                    String msg = "Insufficient vacancy matches found for student: " + id;
-                    logger.warn(msg);
-                    stepResults.add(new BatchResponse.BatchPayloadStepResult("matching", false, msg));
-                    return new BatchResponse.BatchPayloadResponse(id, stepResults);
-                }
-                stepResults.add(new BatchResponse.BatchPayloadStepResult("matching", true, "Matches found: " + matches.size()));
-            } catch (Exception e) {
-                logger.error("Matching failed for {}: {}", student.name(), e.getMessage(), e);
-                stepResults.add(new BatchResponse.BatchPayloadStepResult("matching", false, "Matching failed: " + e.getMessage()));
-                return new BatchResponse.BatchPayloadResponse(id, stepResults);
-            }
+    private void runBatchItemsInParallel(List<HubSpotWebhooksBatchResponse.HubSpotWebhooksPayload> payloads) {
+        payloads.forEach(payload ->
+                CompletableFuture.runAsync(
+                        () -> runMatchingWorkflow(payload.objectId()),
+                        jobMatchingExecutor
+                )
+        );
+    }
 
-            // 2. WhatsApp
-            try {
-                sendVacancyNotifications(student, matches);
-                stepResults.add(new BatchResponse.BatchPayloadStepResult("whatsapp", true, "WhatsApp notification sent"));
-            } catch (Exception e) {
-                logger.error("WhatsApp notification failed for {}: {}", student.name(), e.getMessage(), e);
-                stepResults.add(new BatchResponse.BatchPayloadStepResult("whatsapp", false, "WhatsApp failed: " + e.getMessage()));
-            }
+    public void runMatchingWorkflow(long objectId) {
+        String correlationId = UUID.randomUUID().toString();
+        MDC.put("correlationId", correlationId);
 
-            // 3. Persist match
-            try {
-                persistMatchMessages(student, matches);
-                stepResults.add(new BatchResponse.BatchPayloadStepResult("persist", true, "Match message persisted"));
-            } catch (Exception e) {
-                logger.error("Persisting match message failed for {}: {}", student.name(), e.getMessage(), e);
-                stepResults.add(new BatchResponse.BatchPayloadStepResult("persist", false, "Persist failed: " + e.getMessage()));
-            }
+        try {
+            logger.info("Starting matching workflow for objectId={}", objectId);
 
-            // 4. Admin mail
+            final Student student = findStudent(objectId);
+            final List<StudentVacancyMatch> matches = findMatches(student, objectId);
+            sendVacancyNotifications(student, matches);
+            persistMatchMessages(student, matches);
+
             try {
                 sendAdminNotificationEmail(student);
-                stepResults.add(new BatchResponse.BatchPayloadStepResult("adminMail", true, "Admin mail sent"));
-            } catch (Exception e) {
-                logger.error("Admin mail failed for {}: {}", student.name(), e.getMessage(), e);
-                stepResults.add(new BatchResponse.BatchPayloadStepResult("adminMail", false, "Admin mail failed: " + e.getMessage()));
+            } catch (Exception mailEx) {
+                logger.warn("Admin mail failed for student={}, reason={}", student.id(), mailEx.getMessage(), mailEx);
             }
 
-            logger.info("Processed webhook for objectId: {} with results: {}", id, stepResults);
-            return new BatchResponse.BatchPayloadResponse(id, stepResults);
+            logger.info("Matching workflow completed successfully for objectId={}", objectId);
+
         } catch (Exception ex) {
-            logger.error("Failed to process webhook - objectId: {}, error: {}", id, ex.getMessage(), ex);
-            return BatchResponse.singleMessage(id, ex.getMessage());
+            handleWorkflowFailure(objectId, correlationId, ex);
+            throw new MatchingException("Matching workflow failed for objectId=" + objectId, ex);
         } finally {
             MDC.clear();
         }
@@ -176,7 +136,21 @@ public class HubSpotWebhookService {
         );
     }
 
+    private List<StudentVacancyMatch> findMatches(Student student, long objectId) {
+        List<StudentVacancyMatch> matches = matchEngine.query(student, FIRST_MATCH_LIMIT);
+
+        if (matches.size() < FIRST_MATCH_LIMIT) {
+            throw new MatchingException("Insufficient matches for student " + objectId);
+        }
+
+        return matches;
+    }
+
     private void sendVacancyNotifications(Student student, List<StudentVacancyMatch> matches) {
+        if (matches.size() < 2) {
+            throw new MatchingException("Not enough matches to notify student " + student.id());
+        }
+
         Vacancy vac1 = matches.get(0).vacancy();
         Vacancy vac2 = matches.get(1).vacancy();
         vacancyNotificationAdapter.notifyCandidate(student.phoneNumber(), student.name(), vac1, vac2);
@@ -192,15 +166,15 @@ public class HubSpotWebhookService {
     private void sendAdminNotificationEmail(Student student) {
         String emailBody = String.format("""
                         📢 *Nieuwe student gematcht!*
-
+                        
                         👤 Naam: %s
                         📧 E-mail: %s
                         📱 Telefoon: %s
                         🎓 Studie: %s
                         📍 Locatie: %s
-
+                        
                         HubSpot object ID: %s
-
+                        
                         Bekijk de student in HubSpot voor meer details.
                         """,
                 student.name(),
@@ -214,5 +188,19 @@ public class HubSpotWebhookService {
 
         emailService.send(mailTo, "Nieuwe student gematcht", emailBody);
         logger.info("Confirmation email sent to {} for student: {}", maskEmail(mailTo), student.name());
+    }
+
+    private void handleWorkflowFailure(long objectId, String correlationId, Exception ex) {
+        logger.error("Matching workflow FAILED for objectId={}, correlationId={}", objectId, correlationId, ex);
+
+        errorNotificationService.sendErrorEmail(
+                "HubSpot Matching Workflow Failed",
+                """
+                        ObjectId: %s
+                        CorrelationId: %s
+                        Error: %s
+                        """.formatted(objectId, correlationId, ex.getMessage()),
+                ex
+        );
     }
 }

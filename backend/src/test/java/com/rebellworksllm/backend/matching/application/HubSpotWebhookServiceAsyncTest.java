@@ -29,11 +29,11 @@ public class HubSpotWebhookServiceAsyncTest {
         Mockito.doAnswer(invocation -> {
             latch.countDown();
             return null;
-        }).when(webhookService).processStudentMatch(Mockito.anyLong());
+        }).when(webhookService).runMatchingWorkflow(Mockito.anyLong());
 
         for (int i = 0; i < parallelRequests; i++) {
             long id = i;
-            new Thread(() -> webhookService.processStudentMatch(id)).start();
+            new Thread(() -> webhookService.runMatchingWorkflow(id)).start();
         }
 
         boolean completed = latch.await(10, TimeUnit.SECONDS);

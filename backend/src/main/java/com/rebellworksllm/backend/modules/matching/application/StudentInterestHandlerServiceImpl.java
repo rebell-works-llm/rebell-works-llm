@@ -1,5 +1,6 @@
 package com.rebellworksllm.backend.modules.matching.application;
 
+import com.rebellworksllm.backend.common.utils.ErrorNotificationService;
 import com.rebellworksllm.backend.common.utils.LogUtils;
 import com.rebellworksllm.backend.modules.email.application.EmailService;
 import com.rebellworksllm.backend.modules.hubspot.application.HubSpotStudentProvider;
@@ -25,33 +26,39 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
     private final MatchMessageRepository matchMessageRepository;
     private final VacancyProvider vacancyProvider;
     private final VacancyNotificationAdapter vacancyNotificationAdapter;
+    private final ErrorNotificationService errorNotificationService;
 
     @Value("${mail.to.student-interest}")
     private String mailTo;
 
-    public StudentInterestHandlerServiceImpl(HubSpotStudentProvider studentProvider,
-                                             EmailService emailService,
-                                             MatchMessageRepository matchMessageRepository,
-                                             VacancyProvider vacancyProvider,
-                                             VacancyNotificationAdapter vacancyNotificationAdapter
+    public StudentInterestHandlerServiceImpl(
+            HubSpotStudentProvider studentProvider,
+            EmailService emailService,
+            MatchMessageRepository matchMessageRepository,
+            VacancyProvider vacancyProvider,
+            VacancyNotificationAdapter vacancyNotificationAdapter,
+            ErrorNotificationService errorNotificationService
     ) {
         this.studentProvider = studentProvider;
         this.emailService = emailService;
         this.matchMessageRepository = matchMessageRepository;
         this.vacancyProvider = vacancyProvider;
         this.vacancyNotificationAdapter = vacancyNotificationAdapter;
+        this.errorNotificationService = errorNotificationService;
     }
 
     @Override
     public void handleReply(ContactResponseMessage responseMessage) {
+        try {
+            handleStudentInterest(responseMessage);
+        } catch (Exception e) {
+            handleError(e, responseMessage);
+        }
+    }
 
-
+    private void handleStudentInterest(ContactResponseMessage responseMessage) {
         StudentContact studentContact = studentProvider.getStudentByPhone(responseMessage.contactPhone());
         logger.info("Interested student found: {}", studentContact.fullName());
-
-        vacancyNotificationAdapter.notifyInterestedCandidate(studentContact.phoneNumber(), responseMessage);
-
-
 
         String normalizedPhone = MatchingUtils.normalizePhone(responseMessage.contactPhone());
         MatchMessageResponse matchMessageResponse = matchMessageRepository.findByContactPhone(normalizedPhone);
@@ -60,29 +67,29 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
         String vacancyId = matchMessageResponse.vacancyIds().get(0);
         if (responseMessage.message().endsWith("2")) {
             vacancyId = matchMessageResponse.vacancyIds().get(1);
-        } else if(responseMessage.message().endsWith("3")){
+        } else if (responseMessage.message().endsWith("3")) {
             vacancyId = matchMessageResponse.vacancyIds().get(2);
-        } else if (responseMessage.message().endsWith("4")){
+        } else if (responseMessage.message().endsWith("4")) {
             vacancyId = matchMessageResponse.vacancyIds().get(3);
         }
 
         VacancyResponseDto vacancy = vacancyProvider.getVacancyById(vacancyId);
-        logger.info("poep3 {}", vacancy);
-        System.out.println(vacancy);
+
+        vacancyNotificationAdapter.notifyInterestedCandidate(studentContact.phoneNumber(), responseMessage);
 
         String plainBody = """
-        New Student Interest
-        
-        Action: %s
-
-        HubSpot ID: %s
-        Name: %s
-        Phone: %s
-        
-        Vacancy ID: %s
-        Vacancy title: %s
-        Vacancy website: %s
-        """.formatted(
+                New Student Interest
+                
+                Action: %s
+                
+                HubSpot ID: %s
+                Name: %s
+                Phone: %s
+                
+                Vacancy ID: %s
+                Vacancy title: %s
+                Vacancy website: %s
+                """.formatted(
                 responseMessage.message(),
                 studentContact.id(),
                 studentContact.fullName(),
@@ -95,5 +102,21 @@ public class StudentInterestHandlerServiceImpl implements StudentInterestHandler
 
 
         logger.info("Email successfully sent to: {}", LogUtils.maskEmail(mailTo));
+    }
+
+    private void handleError(Exception e, ContactResponseMessage responseMessage) {
+        logger.error("Error while handling student interest reply", e);
+
+        String contextInfo = String.format("""
+                        Incoming message:
+                        - contactPhone: %s
+                        - message: %s
+                        """,
+                responseMessage != null ? LogUtils.maskPhone(responseMessage.contactPhone()) : "<null>",
+                responseMessage != null ? responseMessage.message() : "<null>"
+        );
+
+        errorNotificationService.sendErrorEmail("Student Interest Handling", contextInfo, e);
+        logger.warn("Student interest handling aborted due to error; webhook processing continues.");
     }
 }

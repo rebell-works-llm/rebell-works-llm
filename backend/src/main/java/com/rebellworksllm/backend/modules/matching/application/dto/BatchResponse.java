@@ -2,49 +2,31 @@ package com.rebellworksllm.backend.modules.matching.application.dto;
 
 import org.springframework.http.HttpStatus;
 
-import java.util.List;
+import java.time.Instant;
+import java.util.UUID;
 
 public record BatchResponse(
-
         int status,
         String message,
         String batchId,
-        List<BatchPayloadResponse> payloadResponses
+        Instant timestamp
 ) {
 
-    public record BatchPayloadStepResult(
-            String step,
-            boolean success,
-            String message
-    ) {}
-
-    public record BatchPayloadResponse(
-            long objectId,
-            List<BatchPayloadStepResult> steps
-    ) {}
-
-    public static BatchPayloadResponse singleMessage(long objectId, String message) {
-        return new BatchPayloadResponse(
-                objectId,
-                List.of(new BatchPayloadStepResult("result", message == null, message))
-        );
-    }
-
-    public static BatchResponse success(String batchId, List<BatchPayloadResponse> batchPayloadResponses) {
+    public static BatchResponse accepted() {
         return new BatchResponse(
-                HttpStatus.OK.value(),
-                "Batch processed successfully",
-                batchId,
-                batchPayloadResponses
+                HttpStatus.ACCEPTED.value(),
+                "Batch accepted for processing",
+                UUID.randomUUID().toString(),
+                Instant.now()
         );
     }
 
-    public static BatchResponse failure(String batchId, List<BatchPayloadResponse> batchPayloadResponses) {
+    public static BatchResponse failed() {
         return new BatchResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Batch processing failed",
-                batchId,
-                batchPayloadResponses
+                "Failed to start batch processing",
+                UUID.randomUUID().toString(),
+                Instant.now()
         );
     }
 }
