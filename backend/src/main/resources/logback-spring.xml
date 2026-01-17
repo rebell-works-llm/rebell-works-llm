@@ -2,10 +2,10 @@
 
     <!-- BACKEND FILE APPENDER -->
     <appender name="BACKEND_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>backend/logs/matching.log</file>
+        <file>logs/matching.log</file>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>backend/logs/matching.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>logs/matching.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>50MB</maxFileSize>
             <maxHistory>30</maxHistory>
             <totalSizeCap>2GB</totalSizeCap>
@@ -23,10 +23,10 @@
 
     <!-- SECURITY FILE APPENDER -->
     <appender name="SECURITY_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>backend/logs/security.log</file>
+        <file>logs/security.log</file>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>backend/logs/security.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>logs/security.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>50MB</maxFileSize>
             <maxHistory>30</maxHistory>
             <totalSizeCap>1GB</totalSizeCap>

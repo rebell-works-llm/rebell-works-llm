@@ -1,5 +1,6 @@
 package com.rebellworksllm.backend.modules.hubspot.data;
 
+import com.rebellworksllm.backend.common.utils.LogUtils;
 import com.rebellworksllm.backend.modules.hubspot.application.exception.HubSpotStudentNotFoundException;
 import com.rebellworksllm.backend.modules.hubspot.application.dto.StudentContact;
 import com.rebellworksllm.backend.modules.hubspot.config.HubSpotCredentials;
@@ -73,12 +74,14 @@ public class HubSpotStudentService {
                 .path("/crm/v3/objects/contacts/search")
                 .toUriString();
 
+        List<String> phoneVariants = createPhoneVariants(phone);
+
         Map<String, Object> searchRequest = Map.of(
                 "filterGroups", List.of(Map.of(
                         "filters", List.of(Map.of(
                                 "propertyName", "phone",
-                                "operator", "CONTAINS_TOKEN",
-                                "value", phone
+                                "operator", "IN",
+                                "values", phoneVariants
                         ))
                 )),
                 "properties", List.of(
@@ -89,7 +92,10 @@ public class HubSpotStudentService {
                 "after", 0
         );
 
-        logger.info("Searching for student in HubSpot by phone: {}", maskPhone(phone));
+        logger.info(
+                "Searching for student in HubSpot by phone variants: {}",
+                phoneVariants.stream().map(LogUtils::maskPhone).toList()
+        );
 
         try {
             final ResponseEntity<StudentSearchResponse> response = restTemplate.postForEntity(
@@ -133,5 +139,19 @@ public class HubSpotStudentService {
                 props.getOrDefault("location", ""),
                 props.getOrDefault("geboortedatum", "")
         );
+    }
+
+    private List<String> createPhoneVariants(String phone) {
+        String clean = phone.replaceAll("[\\s\\-()]", "");
+
+        if (clean.startsWith("+316")) {
+            return List.of(clean, "06" + clean.substring(4));
+        } else if (clean.startsWith("316")) {
+            return List.of("+" + clean, "06" + clean.substring(3));
+        } else if (clean.startsWith("06")) {
+            return List.of(clean, "+316" + clean.substring(2));
+        }
+
+        return List.of(clean);
     }
 }
