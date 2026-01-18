@@ -2,6 +2,7 @@ package com.rebellworksllm.backend.modules.matching.data;
 
 import com.rebellworksllm.backend.common.utils.LogUtils;
 import com.rebellworksllm.backend.modules.matching.application.exception.MatchingException;
+import com.rebellworksllm.backend.modules.matching.application.util.MatchingUtils;
 import com.rebellworksllm.backend.modules.matching.data.dto.MatchMessageRequest;
 import com.rebellworksllm.backend.modules.matching.data.dto.MatchMessageResponse;
 import org.slf4j.Logger;
@@ -31,7 +32,21 @@ public class MatchMessageRepositoryImpl implements MatchMessageRepository {
 
     @Override
     public MatchMessageResponse save(MatchMessageRequest request) {
-        logger.debug("Saving match message: {}", request);
+        if (request == null) {
+            throw new MatchingException("MatchMessageRequest must not be null");
+        }
+
+        String normalizedPhone = MatchingUtils.normalizePhone(request.contactPhone());
+        if (normalizedPhone == null || normalizedPhone.isBlank()) {
+            throw new MatchingException("contactPhone is missing/invalid; cannot persist message");
+        }
+
+        MatchMessageRequest normalizedRequest = new MatchMessageRequest(
+                request.vacancyIds(),
+                normalizedPhone
+        );
+
+        logger.debug("Saving match message (normalized phone): {}", normalizedRequest);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -58,11 +73,16 @@ public class MatchMessageRepositoryImpl implements MatchMessageRepository {
     }
 
     public MatchMessageResponse findByContactPhone(String contactPhone) {
-        logger.debug("Fetching match message for phone: {}", LogUtils.maskPhone(contactPhone));
+        String normalizedPhone = MatchingUtils.normalizePhone(contactPhone);
+        if (normalizedPhone == null || normalizedPhone.isBlank()) {
+            throw new MatchingException("contactPhone is missing/invalid; cannot fetch message");
+        }
+
+        logger.debug("Fetching match message for phone (normalized): {}", LogUtils.maskPhone(normalizedPhone));
 
         String path = UriComponentsBuilder
                 .fromPath("/rest/v1/messages")
-                .queryParam("contactPhone", "eq." + contactPhone)
+                .queryParam("contactPhone", "eq." + normalizedPhone)
                 .toUriString();
 
         try {
@@ -74,7 +94,9 @@ public class MatchMessageRepositoryImpl implements MatchMessageRepository {
                 throw new MatchingException("Supabase GET error: " + response.getStatusCode());
             }
 
-            return Arrays.stream(response.getBody()).findFirst().orElse(null);
+            return Arrays.stream(response.getBody())
+                    .findFirst()
+                    .orElseThrow(() -> new MatchingException("No match message found for phone: " + normalizedPhone));
 
         } catch (Exception e) {
             logger.error("Failed to fetch match message: {}", e.getMessage(), e);
