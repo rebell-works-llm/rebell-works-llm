@@ -4,6 +4,7 @@ import com.rebellworksllm.backend.common.utils.LogUtils;
 import com.rebellworksllm.backend.modules.hubspot.application.exception.HubSpotStudentNotFoundException;
 import com.rebellworksllm.backend.modules.hubspot.application.dto.StudentContact;
 import com.rebellworksllm.backend.modules.hubspot.config.HubSpotCredentials;
+import com.rebellworksllm.backend.modules.matching.application.util.MatchingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -74,7 +75,7 @@ public class HubSpotStudentService {
                 .path("/crm/v3/objects/contacts/search")
                 .toUriString();
 
-        List<String> phoneVariants = createPhoneVariants(phone);
+        List<String> phoneVariants = MatchingUtils.createDutchPhoneVariantsForHubSpot(phone);
 
         Map<String, Object> searchRequest = Map.of(
                 "filterGroups", List.of(Map.of(
@@ -139,19 +140,5 @@ public class HubSpotStudentService {
                 props.getOrDefault("location", ""),
                 props.getOrDefault("geboortedatum", "")
         );
-    }
-
-    private List<String> createPhoneVariants(String phone) {
-        String clean = phone.replaceAll("[\\s\\-()]", "");
-
-        if (clean.startsWith("+316")) {
-            return List.of(clean, "06" + clean.substring(4));
-        } else if (clean.startsWith("316")) {
-            return List.of("+" + clean, "06" + clean.substring(3));
-        } else if (clean.startsWith("06")) {
-            return List.of(clean, "+316" + clean.substring(2));
-        }
-
-        return List.of(clean);
     }
 }
